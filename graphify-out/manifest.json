@@ -1,0 +1,217 @@
+{
+  "/Users/borinmacedo/GitRepos/insper-bebidem/src/bebibem/__init__.py": {
+    "mtime": 1789395933.6191819,
+    "ast_hash": "a2bb91f5ac9f7fc3df976d9c43081738",
+    "semantic_hash": "a2bb91f5ac9f7fc3df976d9c43081738"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/src/bebibem/capacity.py": {
+    "mtime": 1789402865.219326,
+    "ast_hash": "f1584e55d265c7b5fb02c16384f08dd8",
+    "semantic_hash": "f1584e55d265c7b5fb02c16384f08dd8"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/src/bebibem/classification.py": {
+    "mtime": 1789408622.904973,
+    "ast_hash": "eefed6291af312bd73b7ce538fa5112d",
+    "semantic_hash": "eefed6291af312bd73b7ce538fa5112d"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/src/bebibem/cli.py": {
+    "mtime": 1789673056.4679437,
+    "ast_hash": "730b4c1d01cb834d1e7232a44451f8cc",
+    "semantic_hash": "730b4c1d01cb834d1e7232a44451f8cc"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/src/bebibem/clustering.py": {
+    "mtime": 1789407200.10887,
+    "ast_hash": "8e4d792b80dde1b8d2426bbd301fb5f8",
+    "semantic_hash": "8e4d792b80dde1b8d2426bbd301fb5f8"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/src/bebibem/config.py": {
+    "mtime": 1790017794.4261768,
+    "ast_hash": "339bd42bd3696d6103cb6f0d50470a8a",
+    "semantic_hash": "339bd42bd3696d6103cb6f0d50470a8a"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/src/bebibem/features.py": {
+    "mtime": 1789402610.7471278,
+    "ast_hash": "b10413648f1f13c03bcd50e473b65d5b",
+    "semantic_hash": "b10413648f1f13c03bcd50e473b65d5b"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/src/bebibem/figures.py": {
+    "mtime": 1790027567.1594126,
+    "ast_hash": "f5c138448e1fa198d718ca472ce16bc8",
+    "semantic_hash": "f5c138448e1fa198d718ca472ce16bc8"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/src/bebibem/forecast.py": {
+    "mtime": 1790027652.2598765,
+    "ast_hash": "71b0fd5d3eaf1596a8ba461399df84ff",
+    "semantic_hash": "71b0fd5d3eaf1596a8ba461399df84ff"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/src/bebibem/formulas.py": {
+    "mtime": 1789673004.4972177,
+    "ast_hash": "7244e17be3c03350f7840efd044d4a60",
+    "semantic_hash": "7244e17be3c03350f7840efd044d4a60"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/src/bebibem/interpolation.py": {
+    "mtime": 1789408070.2049,
+    "ast_hash": "b5430b6108cee301db3186b78b4a9ece",
+    "semantic_hash": "b5430b6108cee301db3186b78b4a9ece"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/src/bebibem/io_data.py": {
+    "mtime": 1789407083.215784,
+    "ast_hash": "def81b4339f16732edbdd38168ad64be",
+    "semantic_hash": "def81b4339f16732edbdd38168ad64be"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/src/bebibem/models.py": {
+    "mtime": 1789844478.5906563,
+    "ast_hash": "b010c32b1aee52d70084466ea85844d1",
+    "semantic_hash": "b010c32b1aee52d70084466ea85844d1"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/src/bebibem/pipeline.py": {
+    "mtime": 1790027572.6480885,
+    "ast_hash": "7e8a793880bd4468b220251de464e86e",
+    "semantic_hash": "7e8a793880bd4468b220251de464e86e"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/src/bebibem/plotting.py": {
+    "mtime": 1789671562.5289357,
+    "ast_hash": "bb18bbf5c88aebab969bd60446b1fc7a",
+    "semantic_hash": "bb18bbf5c88aebab969bd60446b1fc7a"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/src/bebibem/regression.py": {
+    "mtime": 1789408118.5562105,
+    "ast_hash": "6baa76de0f9098fb9e0c45cdd58fdbf0",
+    "semantic_hash": "6baa76de0f9098fb9e0c45cdd58fdbf0"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/src/bebibem/smoothing.py": {
+    "mtime": 1789407409.6221771,
+    "ast_hash": "de07140690281bb8c48aa166558286d6",
+    "semantic_hash": "de07140690281bb8c48aa166558286d6"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/src/bebibem/timeseries.py": {
+    "mtime": 1790025896.848512,
+    "ast_hash": "db7f8b30e1be02f657bcf0f6bb7759ac",
+    "semantic_hash": "db7f8b30e1be02f657bcf0f6bb7759ac"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/tests/integration/test_notebook.py": {
+    "mtime": 1789407901.07462,
+    "ast_hash": "c24904f4c7e3c0dc005fd27f33276910",
+    "semantic_hash": "c24904f4c7e3c0dc005fd27f33276910"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/tests/integration/test_pipeline_e2e.py": {
+    "mtime": 1789845982.164509,
+    "ast_hash": "ac5d079a731952ccd4df49a21b7f9a2f",
+    "semantic_hash": "ac5d079a731952ccd4df49a21b7f9a2f"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/tests/unit/test_capacity.py": {
+    "mtime": 1789407913.5353253,
+    "ast_hash": "d518ed82d7657a2ac54f81dc14afc376",
+    "semantic_hash": "d518ed82d7657a2ac54f81dc14afc376"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/tests/unit/test_classification.py": {
+    "mtime": 1789407789.7044802,
+    "ast_hash": "d33434fa5be1918bb882934995a4084b",
+    "semantic_hash": "d33434fa5be1918bb882934995a4084b"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/tests/unit/test_clustering.py": {
+    "mtime": 1789402610.7470322,
+    "ast_hash": "d0c5ade6c61a61173cad92b1f4df0490",
+    "semantic_hash": "d0c5ade6c61a61173cad92b1f4df0490"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/tests/unit/test_features.py": {
+    "mtime": 1789402610.7477791,
+    "ast_hash": "754362657b65aeb59abc350e3f8d20b5",
+    "semantic_hash": "754362657b65aeb59abc350e3f8d20b5"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/tests/unit/test_figures.py": {
+    "mtime": 1790027608.6834908,
+    "ast_hash": "6f818dd283bba38c5e128835594079b0",
+    "semantic_hash": "6f818dd283bba38c5e128835594079b0"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/tests/unit/test_forecast.py": {
+    "mtime": 1789407800.6388223,
+    "ast_hash": "2462e1f1cfe1e71e66247191ad716074",
+    "semantic_hash": "2462e1f1cfe1e71e66247191ad716074"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/tests/unit/test_formulas.py": {
+    "mtime": 1789402431.5187092,
+    "ast_hash": "7a44c5fb50bc23ac8f2d903d04fbe6a4",
+    "semantic_hash": "7a44c5fb50bc23ac8f2d903d04fbe6a4"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/tests/unit/test_interpolation.py": {
+    "mtime": 1789408070.2048962,
+    "ast_hash": "30564d3499dbf65fc2b6f73c6b552aa9",
+    "semantic_hash": "30564d3499dbf65fc2b6f73c6b552aa9"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/tests/unit/test_io_data.py": {
+    "mtime": 1789407913.5353003,
+    "ast_hash": "b8cb17d20de9f291ab9f2fb5ba41a567",
+    "semantic_hash": "b8cb17d20de9f291ab9f2fb5ba41a567"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/tests/unit/test_models.py": {
+    "mtime": 1789844716.8507657,
+    "ast_hash": "91519994168311b00375337aa4dd3157",
+    "semantic_hash": "91519994168311b00375337aa4dd3157"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/tests/unit/test_plotting.py": {
+    "mtime": 1789407913.5353405,
+    "ast_hash": "2ee12db7a97b2138069df086e8e8792f",
+    "semantic_hash": "2ee12db7a97b2138069df086e8e8792f"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/tests/unit/test_regression.py": {
+    "mtime": 1789397145.8377233,
+    "ast_hash": "7e539f1d3b9e8f1533531632627a7bba",
+    "semantic_hash": "7e539f1d3b9e8f1533531632627a7bba"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/tests/unit/test_smoothing.py": {
+    "mtime": 1789396538.2697957,
+    "ast_hash": "a7874b91c0275ff852468dd55739fd5b",
+    "semantic_hash": "a7874b91c0275ff852468dd55739fd5b"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/tests/unit/test_timeseries.py": {
+    "mtime": 1789672967.0151515,
+    "ast_hash": "5368acb12b938fbe6c11c61a50e8ebf0",
+    "semantic_hash": "5368acb12b938fbe6c11c61a50e8ebf0"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/.specs/STATE.md": {
+    "mtime": 1789408590.9746528,
+    "ast_hash": "a1827fd8b9a130d5213d305ef72617bf",
+    "semantic_hash": "a1827fd8b9a130d5213d305ef72617bf"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/.specs/features/previsao-demanda-bebibem/code-review.md": {
+    "mtime": 1789407080.359753,
+    "ast_hash": "55a14418c1990baa08f6c860c8e1a98f",
+    "semantic_hash": "55a14418c1990baa08f6c860c8e1a98f"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/.specs/features/previsao-demanda-bebibem/context.md": {
+    "mtime": 1789083782.7616692,
+    "ast_hash": "5faade58a6e8f0a170f3f32abf9af7c1",
+    "semantic_hash": "5faade58a6e8f0a170f3f32abf9af7c1"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/.specs/features/previsao-demanda-bebibem/design.md": {
+    "mtime": 1790027634.9636552,
+    "ast_hash": "940b43d22bbbc14ac24dd51ef9783312",
+    "semantic_hash": "940b43d22bbbc14ac24dd51ef9783312"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/.specs/features/previsao-demanda-bebibem/spec.md": {
+    "mtime": 1790027627.8558788,
+    "ast_hash": "267314de6bca3f54dedd7a1614c1e42d",
+    "semantic_hash": "267314de6bca3f54dedd7a1614c1e42d"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/.specs/features/previsao-demanda-bebibem/tasks.md": {
+    "mtime": 1789846087.927475,
+    "ast_hash": "3d477fa4351da8c209f1ad657fe8210a",
+    "semantic_hash": "3d477fa4351da8c209f1ad657fe8210a"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/.specs/features/previsao-demanda-bebibem/validation.md": {
+    "mtime": 1789408556.4436915,
+    "ast_hash": "60e83511f3ce370eddf1d1371d1cd936",
+    "semantic_hash": "60e83511f3ce370eddf1d1371d1cd936"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/README.md": {
+    "mtime": 1789846056.038578,
+    "ast_hash": "d7b81de6c4784817550b0c24e7353bc7",
+    "semantic_hash": "d7b81de6c4784817550b0c24e7353bc7"
+  },
+  "/Users/borinmacedo/GitRepos/insper-bebidem/docs/Case BebiBem - MBM - Acting 2026.pdf": {
+    "mtime": 1788908631.667331,
+    "ast_hash": "05d6b9ec0f7c4c98ab70fc924be67702",
+    "semantic_hash": "05d6b9ec0f7c4c98ab70fc924be67702"
+  }
+}

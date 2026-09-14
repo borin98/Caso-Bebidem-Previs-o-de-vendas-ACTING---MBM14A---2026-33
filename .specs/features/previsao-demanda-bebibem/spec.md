@@ -2,7 +2,7 @@
 
 **Fonte de negócio:** `docs/Case BebiBem - MBM - Acting 2026.pdf` (questão 5 — previsão de demanda da loja própria; questões 1–3 — contexto de capacidade e canais)
 **Escopo:** Large
-**Status:** Aguardando confirmação do usuário
+**Status:** Implementação concluída; revisão de código corrigida e validação ponta a ponta aprovada
 
 ---
 
@@ -12,19 +12,19 @@ O case BebiBem exige uma previsão de demanda para 2025 das três linhas da loja
 
 ## Goals
 
-- [ ] Um comando (`bebibem-forecast`) produz 100% dos artefatos (figuras, tabelas, previsão) a partir do CSV de entrada, sem passo manual.
-- [ ] Previsão mensal dos próximos anos (a partir de 2025) e total anual por linha, com tabela comparativa de erro (MAD, MAPE, MSE, RMSE, MPE) sobre o holdout de 2024.
-- [ ] Toda figura salva simultaneamente em PNG (300 dpi), SVG e PDF, com bytes estáveis entre execuções (mesma entrada ⇒ mesmo arquivo).
-- [ ] Notebook Jupyter narrativo que reproduz a mesma análise chamando as funções da biblioteca (sem lógica duplicada).
-- [ ] Duas imagens Docker independentes: `docker/pipeline.Dockerfile` executa o script; `docker/jupyter.Dockerfile` sobe o JupyterLab na 8888.
-- [ ] Cobertura de testes ≥ 85% em `src/bebibem`, com teste 1:1 para cada critério de aceite de lógica numérica.
+- [x] Um comando (`bebibem-forecast`) produz 100% dos artefatos (figuras, tabelas, previsão) a partir do CSV de entrada, sem passo manual.
+- [x] Previsão mensal dos próximos anos (a partir de 2025) e total anual por linha, com tabela comparativa de erro (MAD, MAPE, MSE, RMSE, MPE) sobre o holdout de 2024.
+- [x] Toda figura salva simultaneamente em PNG (300 dpi), SVG e PDF, com bytes estáveis entre execuções (mesma entrada ⇒ mesmo arquivo).
+- [x] Notebook Jupyter narrativo que reproduz a mesma análise chamando as funções da biblioteca (sem lógica duplicada).
+- [x] Duas imagens Docker independentes: `docker/pipeline.Dockerfile` executa o script; `docker/jupyter.Dockerfile` sobe o JupyterLab na 8888.
+- [x] Cobertura de testes ≥ 85% em `src/bebibem`, com teste 1:1 para cada critério de aceite de lógica numérica.
 
 ## Out of Scope
 
 | Item | Motivo |
 | --- | --- |
 | Respostas dissertativas das questões 1, 2, 3 e 4c do case | Entregável textual de consultoria, não software |
-| Modelos fora do scikit-learn (SARIMA, Prophet, LSTM) | Stack fixada pelo usuário: numpy, pandas, scikit-learn, matplotlib |
+| Modelos fora do scikit-learn/statsmodels além dos avaliados (Prophet, LSTM) | Stack fixada pelo usuário: numpy, pandas, scikit-learn, matplotlib; SARIMA liberado depois sob decisão do usuário para tratar ciclos periódicos (ver DEM-26) |
 | Dashboard web / API / banco de dados | Entrega é script + notebook + figuras em disco |
 | Extração automática da tabela do PDF | Usuário fornecerá o CSV no repositório (decisão do usuário) |
 | Previsão por SKU (14 SKUs do portfólio) | Histórico disponível é por linha de produto, não por SKU |
@@ -45,6 +45,10 @@ O case BebiBem exige uma previsão de demanda para 2025 das três linhas da loja
 | Partição de avaliação | Treino 2022–2023, holdout 2024 (12 meses); seleção por `TimeSeriesSplit(n_splits=3)` dentro do treino | Confirmado pelo usuário | y |
 | Conjunto de métricas de erro | Reportar **MAD, MAPE, MSE, RMSE e MPE** em tabela comparativa por (produto, modelo), em CSV e em figura-tabela; vencedor por menor MAPE, desempate < 0,5 p.p. por menor MAD | Confirmado pelo usuário | y |
 | Determinismo | `random_state=42` em todo estimador estocástico; metadados de data suprimidos no `savefig` | Reprodutibilidade testável | y |
+| Estilo visual das figuras | Todo PNG/SVG/PDF SHALL ter fundo branco e texto (título, rótulos, ticks, legenda, anotações, células de tabela) em preto, forçado em `save_figure` por objeto (`figure`, cada `axis`, cada `Text`) — não basta resetar `rcParams`, pois um tema escuro de IDE (ex.: VS Code Jupyter) grava a cor no objeto já na criação, antes de `save_figure` rodar; exceção deliberada: células de tabela com fundo escuro explícito (`#2c3e50`) mantêm texto branco por contraste, decidido por luminância do fundo da célula, não por exceção nomeada | Correção de bug: fundo/texto saíam escuro/branco herdados do tema do Jupyter, tornando PNGs ilegíveis fora do IDE | y |
+| Moldura dos eixos (spines) | Toda figura SHALL ter as 4 bordas do eixo (`spines`: `top`, `bottom`, `left`, `right`) visíveis, em preto, com `linewidth=1.4` — forçado por objeto em `save_figure` (`_reinforce_spines`), pelo mesmo motivo do fundo/texto: a cor/espessura do spine já é gravada no objeto `Axes` na criação, um reset de `rcParams` depois não alcança figuras já construídas | Pedido explícito do usuário: "Reforce the border frame from the plot (axis X and Y)" | y |
+| Rótulos de valor em gráfico de barras | Todo `bar_label` (barras agrupadas de `fig_historical_bar` e barras mensais de `fig_forecast_2025_bar`/`fig_forecast_2025_total_bar`) SHALL usar `rotation=90` e margem vertical (`axis.margins(y=...)`) ampliada para caber o texto — nenhum rótulo ou barra é removido, apenas a orientação do texto muda para não sobrepor rótulos vizinhos quando as barras são estreitas (até 7 grupos por mês em `fig_historical_bar`) | Pedido explícito do usuário: "avoid values overlap... maintain all the data" | y |
+| Pasta de saída de figuras de previsão | `previsao/` é a única pasta para figuras de previsão tanto do CLI (`bebibem-forecast`, 32 figuras numeradas) quanto do notebook narrativo (tabela comparativa, observado vs. previsto por ano, curvas e barras de 2025) — a pasta `resultados_discussao/` do notebook foi removida e todo `save_figure(..., "resultados_discussao/...")` renomeado para `save_figure(..., "previsao/...")` | Pedido explícito do usuário: "merge the previsão e resultado da discussão as one folder" | y |
 | Idioma dos artefatos | PT-BR em títulos, rótulos, README e notebook; código e identificadores em inglês | Confirmado pelo usuário | y |
 | Série com < 24 observações | Executa plot, interpolação e média móvel; **pula** ML e clusterização, registra `WARNING` e marca `insufficient_data` | Lag-12 e holdout anual exigem 2 ciclos anuais | y |
 | Fórmulas formais | Toda técnica (interpolação, média móvel, índice sazonal, KMeans, silhouette, Ridge, 5 métricas) documentada em LaTeX no `design.md`, replicada no notebook e no README, com símbolos consistentes | Pedido explícito do usuário | y |
@@ -53,6 +57,7 @@ O case BebiBem exige uma previsão de demanda para 2025 das três linhas da loja
 | Modelos de regressão clássica | Incluir **regressão linear (equação normal)**, **regressão exponencial linearizada** e **regressão exponencial por equação normal** no mesmo comparativo dos modelos de ML, implementados com numpy | Pedido do usuário (arquivos de referência `Regressao_linear.py`, `Regressao_Exponencial.py`, `Regressao_Exponencial Equacao Normal.py`) | y |
 | Arquivos de referência do usuário | Não estão neste repositório; as implementações seguem a formulação matemática documentada no `design.md`, não o código-fonte original | Só a lista de nomes foi fornecida; nenhuma leitura do código foi possível | y |
 | Regressão logística | Aplicada como **classificador do regime mensal** (`alta` vs `não alta`, rótulo vindo do cluster sazonal), avaliada por **matriz de confusão** + acurácia/precisão/recall/F1 | Previsão de demanda é contínua; logística só faz sentido como classificação de regime (equivalente ao `regrassao log confusion.py` de referência) | y |
+| Eixo X das figuras temporais | Todas as figuras de série temporal (pontos, interpolação, média móvel, backtest, regressão clássica, histórico+previsão) usam o índice inteiro do mês `T = 12(ano−2022) + (mês−1)` no eixo X, nunca a data de calendário; `T=0` é janeiro/2022, `T=35` é dezembro/2024, `T=36` é janeiro/2025. Exceção deliberada: `fig_historical_bar` (notebook, DEM-16 AC7) mantém índice local `0`–`11` **dentro de cada ano**, para alinhar o mesmo mês entre 2022, 2023 e 2024 lado a lado | Pedido do usuário: usar números inteiros no eixo X ao invés de datas/nomes de mês | y |
 
 **Open questions:** nenhuma — todas resolvidas ou registradas acima. Pendência operacional (não de spec): o CSV real em `data/raw/demanda_loja_propria.csv` será fornecido pelo usuário; até lá o desenvolvimento e os testes usam `data/example/demanda_exemplo.csv` (bloqueia apenas a execução final, T23).
 
@@ -88,7 +93,7 @@ O case BebiBem exige uma previsão de demanda para 2025 das três linhas da loja
 
 **Acceptance Criteria**:
 
-1. WHEN o pipeline roda THEN o sistema SHALL gerar uma figura de dispersão por linha de produto (3 figuras) com eixo x temporal mensal 2022-01..2024-12 e marcador em cada observação.
+1. WHEN o pipeline roda THEN o sistema SHALL gerar uma figura de dispersão por linha de produto (3 figuras) com eixo x em índice inteiro do mês `T` (`T=0` em janeiro/2022 até `T=35` em dezembro/2024, nunca data de calendário) e marcador em cada observação.
 2. WHEN o pipeline roda THEN o sistema SHALL gerar 1 figura combinada com as 3 séries sobrepostas e legenda por produto.
 3. WHEN uma observação é `NaN` (mês ausente) THEN a figura SHALL omitir o marcador e não interromper a linha guia com valor interpolado silencioso.
 4. WHEN a figura é salva THEN o sistema SHALL produzir os 3 arquivos `reports/figures/png/<nome>.png`, `.../svg/<nome>.svg`, `.../pdf/<nome>.pdf`.
@@ -114,7 +119,7 @@ O case BebiBem exige uma previsão de demanda para 2025 das três linhas da loja
 7. WHEN a figura de interpolação polinomial é gerada THEN ela SHALL conter um artista `Text` cujo conteúdo é exatamente a string de (6), posicionado dentro dos eixos em caixa com fundo branco semitransparente (`alpha=0,75`) que não sobrepõe pontos observados.
 8. WHEN a equação tem mais de 4 termos THEN a anotação SHALL quebrar em linhas a cada 3 termos, mantendo a fórmula legível dentro dos limites dos eixos.
 9. WHEN as curvas são plotadas THEN o sistema SHALL gerar, por produto, 1 figura contendo pontos observados + curva linear + curva polinomial + anotação da equação + legenda identificando o grau escolhido e como ele foi escolhido (`auto` ou `--poly-degree`).
-10. WHEN a variável da fórmula é interpretada THEN `x` SHALL ser o índice de mês desde o início da série (`x = 0` em 2022-01), declarado no rodapé da figura, junto da forma genérica do modelo ajustado.
+10. WHEN a variável da fórmula é interpretada THEN `x` SHALL ser o índice inteiro do mês `T` desde o início da série (`x = 0` em 2022-01), e o eixo x da figura SHALL exibir esse mesmo `T` (nunca a data de calendário), declarado no rodapé da figura, junto da forma genérica do modelo ajustado.
 
 **Independent Test**: `tests/unit/test_interpolation.py` — série com buraco conhecido, ponto médio esperado analiticamente; polinômio de grau 1 sobre reta perfeita ⇒ R² = 1 e rótulo `$y = 2,000 x + 1,000$`; figura contém `Text` com o rótulo.
 
@@ -153,7 +158,7 @@ O case BebiBem exige uma previsão de demanda para 2025 das três linhas da loja
 5. WHEN há `y_t = 0` no período avaliado THEN MAPE e MPE SHALL ignorar esses instantes, registrar a contagem em `n_zeros` e o sistema SHALL acrescentar a coluna `smape` para essa linha.
 6. WHEN o modelo vencedor é escolhido THEN o critério SHALL ser o menor MAPE de holdout; empates dentro de 0,5 p.p. SHALL ser desempatados pelo menor MAD.
 7. WHEN o pipeline é executado duas vezes com a mesma entrada e `--seed 42` THEN as métricas gravadas SHALL ser idênticas até `1e-10`.
-8. WHEN o backtest termina THEN o sistema SHALL gerar 1 figura por produto (real 2024 × previsto por modelo), 1 figura de barras de MAPE por modelo × produto e 1 **figura-tabela** com as 5 métricas por (produto, modelo), destacando o vencedor.
+8. WHEN o backtest termina THEN o sistema SHALL gerar 1 figura por produto (real 2024 × previsto por modelo, eixo x em índice inteiro do mês `T`, `T=24`..`T=35` para 2024), 1 figura de barras de MAPE por modelo × produto e 1 **figura-tabela** com as 5 métricas por (produto, modelo), destacando o vencedor.
 9. WHEN a figura-tabela de erros é gerada THEN seu rodapé SHALL exibir, em notação matemática, as fórmulas de MAD, MSE, RMSE, MAPE e MPE usadas no cálculo.
 10. WHEN o comparativo é montado THEN `error_metrics.csv` e a figura-tabela SHALL conter uma linha para cada um dos 6 modelos por produto: `ridge`, `random_forest`, `gradient_boosting`, `linear_normal_equation`, `exponential_loglinear`, `exponential_normal_equation`.
 11. WHEN um modelo de regressão clássica não pode ser ajustado (ex.: exponencial com `y_t ≤ 0`) THEN o sistema SHALL registrar `WARNING`, marcar `not_applicable` na linha correspondente da tabela e seguir com os demais modelos.
@@ -176,7 +181,7 @@ O case BebiBem exige uma previsão de demanda para 2025 das três linhas da loja
 3. WHEN `exponential_regression_loglinear(x, y)` é chamada com `y > 0` THEN ela SHALL ajustar $\ln y = \ln a + b x$ pelas fórmulas de somatório e devolver $a$, $b$, $R^2$ (no espaço log e no espaço original) e a equação `y = a e^{bx}` em mathtext.
 4. WHEN `exponential_regression_normal_equation(x, y)` é chamada THEN ela SHALL ajustar o mesmo modelo pela equação normal em forma matricial e os coeficientes SHALL coincidir com os de (3) dentro de `1e-9` — a igualdade das duas formulações é verificada por teste.
 5. WHEN algum `y_t ≤ 0` THEN as regressões exponenciais SHALL ser puladas para essa série com `WARNING` e marcadas `not_applicable`, sem abortar o pipeline.
-6. WHEN as regressões são plotadas THEN o sistema SHALL gerar, por produto, 1 figura com os pontos observados + reta ajustada + curva exponencial, **com as duas equações anotadas na imagem** (mesmo padrão de DEM-21) e $R^2$ de cada uma.
+6. WHEN as regressões são plotadas THEN o sistema SHALL gerar, por produto, 1 figura com os pontos observados + reta ajustada + curva exponencial, eixo x em índice inteiro do mês `T` (nunca data de calendário), **com as duas equações anotadas na imagem** (mesmo padrão de DEM-21) e $R^2$ de cada uma.
 7. WHEN os coeficientes são gravados THEN `reports/tables/regression_fit.csv` SHALL conter `produto, modelo, coeficientes, r2, equacao, metric_note`.
 8. WHEN esses modelos entram no backtest THEN eles SHALL ser avaliados nas mesmas 5 métricas e aparecer no comparativo (DEM-09/DEM-10).
 
@@ -217,9 +222,10 @@ O case BebiBem exige uma previsão de demanda para 2025 das três linhas da loja
 4. WHEN a previsão recursiva avança THEN `lag_1` SHALL usar a previsão do mês anterior e `lag_12` SHALL usar o valor real de 2024 enquanto existir; a partir do 13º passo `lag_12` SHALL usar previsões e o sistema SHALL registrar `WARNING` de acúmulo de erro.
 5. WHEN a previsão termina THEN o sistema SHALL gravar `reports/tables/forecast_monthly.csv` (`produto, ano, mes, unidades_previstas, modelo, mape_holdout`) e `reports/tables/forecast_annual.csv` (`produto, ano, unidades_previstas_total, modelo, mape_holdout, mad_holdout`), com totais anuais inteiros.
 6. WHEN qualquer previsão mensal resulta negativa THEN o sistema SHALL truncar em 0 e registrar `WARNING` identificando produto e mês.
-7. WHEN a previsão é plotada THEN o sistema SHALL gerar 1 figura por produto com histórico 2022–2024 + previsão futura em estilo distinto e 1 figura combinada com as 3 linhas.
+7. WHEN a previsão é plotada THEN o sistema SHALL gerar 1 figura por produto com histórico 2022–2024 + previsão futura em estilo distinto e 1 figura combinada com as 3 linhas, eixo x em índice inteiro contínuo do mês `T` (`T=0` em janeiro/2022; a previsão futura continua a mesma contagem, `T=36` em janeiro/2025), nunca data de calendário.
+8. WHEN a previsão é plotada THEN o sistema SHALL também gerar, por produto, um gráfico de barras isolado apenas com os 12 meses de 2025 previstos (sem o histórico 2022–2024) e 1 gráfico de barras adicional com a soma mensal das 3 linhas; cada barra SHALL exibir seu valor exato acima de si e o título SHALL anotar o total do ano; o eixo do mês SHALL usar o índice inteiro contínuo `T` desde o início da série (`T=36` = janeiro de 2025, `T=47` = dezembro de 2025 — nunca reiniciado em 0 a cada ano), nunca a data calendário.
 
-**Independent Test**: rodar o pipeline nos dados do case e conferir que `forecast_annual.csv` tem 3 linhas (1 ano) ou 6/9 (2/3 anos), inteiros positivos, ordem de grandeza coerente com 2024 (±40%) e nenhuma linha com ano ≤ 2024.
+**Independent Test**: rodar o pipeline nos dados do case e conferir que `forecast_annual.csv` tem 3 linhas (1 ano) ou 6/9 (2/3 anos), inteiros positivos, ordem de grandeza coerente com 2024 (±40%) e nenhuma linha com ano ≤ 2024; `tests/integration/test_pipeline_e2e.py` conta as 4 figuras de barra (3 por produto + 1 total) no catálogo.
 
 ---
 
@@ -275,6 +281,7 @@ O case BebiBem exige uma previsão de demanda para 2025 das três linhas da loja
 4. WHEN a mesma figura é gerada duas vezes com a mesma entrada THEN os arquivos SVG e PDF SHALL ter hash SHA-256 idêntico (metadados de data suprimidos).
 5. WHEN o diretório de saída não existe THEN o sistema SHALL criá-lo recursivamente antes de salvar.
 6. WHEN o pipeline termina THEN o sistema SHALL gravar `reports/figures/index.csv` com `nome, titulo, formatos, caminho_relativo` de cada figura gerada.
+7. WHEN o catálogo padrão do pipeline é gravado THEN cada figura SHALL residir sob uma subpasta nomeada pela etapa que a gera (`pontos/`, `interpolacao/`, `media_movel/`, `clusters/`, `backtest_comparativo/`, `metricas/`, `regressao_classica/`, `classificacao/`, `previsao/`, `capacidade/`) — nenhuma figura numerada SHALL ficar diretamente na raiz de `png/`, `svg/` ou `pdf/`.
 
 **Independent Test**: `tests/unit/test_plotting.py` — chamar `save_figure` duas vezes em `tmp_path` e comparar hashes; verificar erro para formato inválido.
 
@@ -294,6 +301,7 @@ O case BebiBem exige uma previsão de demanda para 2025 das três linhas da loja
 4. WHEN uma etapa depende de outra não selecionada (ex.: `ml` sem `features`) THEN o sistema SHALL resolver a dependência automaticamente e registrar `INFO` sobre a inclusão.
 5. WHEN o pipeline termina com sucesso THEN a saída SHALL imprimir um resumo com número de figuras, tabelas e o total anual previsto por linha.
 6. WHEN ocorre erro de validação de entrada THEN o exit code SHALL ser `2`; erro inesperado SHALL retornar `1` com stack trace apenas em `--log-level debug`.
+7. WHEN o pipeline grava qualquer figura ou tabela THEN o caminho final SHALL estar contido em `--outdir` (ou no default `reports/`); nenhuma etapa SHALL escrever fora dessa raiz, e duas execuções com `--outdir` distintos SHALL produzir árvores de saída totalmente disjuntas.
 
 **Independent Test**: `tests/integration/test_pipeline_e2e.py` — roda o pipeline completo em `tmp_path` com CSV sintético e valida exit code, contagem de arquivos e conteúdo do resumo.
 
@@ -312,6 +320,11 @@ O case BebiBem exige uma previsão de demanda para 2025 das três linhas da loja
 3. WHEN o notebook executa THEN ele SHALL exibir, em ordem: pontos observados, interpolações, média móvel, clusters, comparação de modelos, backtest 2024 e previsão 2025 com a tabela de totais anuais.
 4. WHEN o notebook é versionado THEN ele SHALL ser commitado sem outputs (`execution_count: null`, `outputs: []`) para manter diff legível.
 5. WHEN o teste de notebook roda (`pytest --nbmake`) THEN ele SHALL passar usando o CSV de exemplo do repositório.
+6. WHEN o notebook grava figuras/tabelas THEN todo caminho de saída SHALL derivar exclusivamente de `reports_path` (`reports/notebook-example` por padrão, ou `BEBIBEM_NOTEBOOK_OUTDIR` se definido); nenhuma célula SHALL escrever em `reports/` (raiz de produção do CLI, DEM-15) ou em qualquer diretório fora de `reports_path`, garantindo que a execução do notebook nunca sobrescreva os artefatos do CLI.
+7. WHEN o notebook exibe o histórico de demanda THEN ele SHALL incluir, por produto, um gráfico de barras com apenas dados observados de 2022–2024 (nunca sobreposto a uma previsão), agrupado por ano, com o mês no eixo em índice **local** sequencial de 0 a 11 **dentro de cada ano** ($0$ = janeiro) — deliberadamente não o índice `T` contínuo das demais figuras, para alinhar visualmente o mesmo mês entre 2022, 2023 e 2024 —, valor exato acima de cada barra e o total do período de 3 anos anotado no título.
+8. WHEN o notebook exibe a previsão de 2025 (DEM-27) THEN `fig_forecast_2025_bar` (por produto) e `fig_forecast_2025_total_bar` (soma) SHALL permanecer isolados do histórico — sem pontos observados sobrepostos, só as barras de `T=36`..`T=47` — porque misturar barras (categoria discreta) com pontos dispersos de histórico (série contínua) mistura geometrias de gráfico incompatíveis e não agrega leitura; a comparação observado-vs-previsto por ano já é responsabilidade de `fig_historical_bar` (AC7). `fig_forecast_2025_curves_all`, por usar linha contínua nos dois segmentos, SHALL sobrepor os pontos observados de 2022–2024 do mesmo produto antes de cada curva de previsão (parâmetro `history`), no índice inteiro contínuo `T` (`T=0`..`T=35` histórico, `T=36`..`T=47` previsão 2025), com faixa cinza demarcando o holdout 2024 e faixa azul demarcando a previsão 2025 — mesmo padrão já usado por `fig_best_model_fit` (DEM-27) e por `fig_backtest` (DEM-10), que também passou a plotar o histórico observado completo (2022–2024) em vez de só o holdout 2024.
+
+> **Nota (2026-09-21)**: um pedido do usuário para sobrepor pontos observados em "todos os gráficos" inicialmente reverteu esta AC por completo, incluindo os gráficos de barra. Uma correção subsequente do usuário — "não misture o histograma [comparação observado-vs-previsto por barra, já feita por `fig_historical_bar`] com o gráfico de predição [as barras isoladas de `fig_forecast_2025_bar`/`fig_forecast_2025_total_bar`]" — restaurou o isolamento nos dois gráficos de barra; apenas o gráfico de linha (`fig_forecast_2025_curves_all`) e `fig_backtest` mantêm a sobreposição, por usarem geometria de linha/scatter consistente nos dois segmentos.
 
 **Independent Test**: `uv run pytest --nbmake notebooks/01_analise_demanda_bebibem.ipynb`.
 
@@ -390,6 +403,40 @@ O case BebiBem exige uma previsão de demanda para 2025 das três linhas da loja
 
 ---
 
+### P2: Comparação com métodos de séries temporais para ciclos periódicos
+
+**User Story**: Como analista, quero comparar Holt-Winters multiplicativo, SARIMA e regressão harmônica de Fourier contra os pontos observados, para tratar a sazonalidade periódica evidente no gráfico de pontos (`04_pontos_todos`) quando os modelos de ML/regressão clássica (DEM-09) não capturam bem o ciclo anual.
+
+**Why P2**: Decisão do usuário após inspecionar os pontos observados e identificar ciclo anual claro; roda apenas com `--timeseries` (usa `statsmodels`), como complemento opcional ao comparativo P1 de 6 modelos — não o substitui.
+
+**Acceptance Criteria**:
+
+1. WHEN `--timeseries` é passado THEN o sistema SHALL ajustar, por produto, `holt_winters_multiplicative` (sazonalidade multiplicativa, m=12), `sarima` ($(1,0,0)\times(1,0,0)_{12}$) e `fourier_harmonic` (tendência linear + K=2 harmônicos), treinando em 2022–2023 e avaliando no holdout 2024 com as mesmas 5 métricas do comparativo ML (DEM-09).
+2. WHEN a avaliação termina THEN o sistema SHALL gravar `reports/tables/timeseries_error_metrics.csv` com uma linha por (produto, método) e marcar `vencedor` pelo mesmo critério de `select_best` (menor MAPE; empate < 0,5 p.p. por menor MAD).
+3. WHEN a previsão futura de séries temporais roda THEN cada produto SHALL usar o método vencedor da linha 2 — nunca um método fixo compartilhado entre todos os produtos — e gravar `reports/tables/timeseries_forecast_monthly.csv` e `timeseries_forecast_annual.csv`.
+4. WHEN as figuras são geradas THEN o sistema SHALL produzir, por produto: comparação dos 3 métodos contra o holdout, backtest individual por método, gráfico de barras de MAPE/MAD entre métodos e tabela-figura de erros.
+
+**Independent Test**: `tests/unit/test_timeseries.py` — série sazonal sintética ⇒ Holt-Winters vence; `forecast_timeseries_future` chamado com um mapeamento `{produto: modelo}` de vencedores distintos produz, para cada produto, a previsão do seu próprio método (não um método único fixado para todas as linhas).
+
+---
+
+### P1: Seleção unificada do melhor modelo e previsão final por linha ⭐ MVP
+
+**User Story**: Como gestor da loja própria, quero que a previsão final publicada de cada linha use o melhor modelo entre TODOS os métodos avaliados (ML/regressão clássica DEM-09 e séries temporais DEM-26) — não apenas o vencedor dentro de um grupo isolado — para nunca publicar uma previsão pior quando um método do outro grupo é mais preciso.
+
+**Why P1**: Bug de produção encontrado em revisão — Doce de frutas era previsto com `ridge` (MAPE 34,55%) enquanto `holt_winters_multiplicative` (MAPE 15,53%) já estava disponível na tabela de séries temporais e nunca era comparado contra ele.
+
+**Acceptance Criteria**:
+
+1. WHEN as tabelas de métricas de ML/clássico (DEM-09) e de séries temporais (DEM-26) existem THEN `bebibem.models.select_overall_best` SHALL concatená-las e aplicar a regra de `select_best` (menor MAPE; empate < 0,5 p.p. por menor MAD) uma única vez por produto, retornando `{produto: modelo_vencedor_geral}`.
+2. WHEN o vencedor geral de um produto é um método de série temporal THEN a previsão mensal de 2025 usada para esse produto SHALL vir de `timeseries_forecast_monthly.csv` calculada com o método específico daquele produto (DEM-26 AC3), nunca de um método fixo compartilhado.
+3. WHEN o notebook narrativo (DEM-16) é executado THEN sua última seção ("Resultados e discussão") SHALL exibir: a tabela combinada dos 9 modelos com a coluna `vencedor_geral` e uma coluna `grupo` distinguindo ML/regressão clássica de séries temporais — também renderizada por `bebibem.figures.fig_combined_error_table` e salva em `reports_path/figures/previsao/tabela_comparativa_modelos.<formato>` —, a previsão mensal de 2025 separada por produto usando o vencedor geral de cada um (`fig_forecast_2025_bar`, um por produto, DEM-11 AC8), `bebibem.figures.fig_forecast_2025_curves_all` com as 3 curvas de previsão 2025 sobrepostas (uma por produto, rotulada com modelo e MAPE, eixo x em índice inteiro contínuo `T`, `T=36`..`T=47` para os 12 meses de 2025 — mesma convenção de DEM-11 AC8) salvo em `reports_path/figures/previsao/` — a mesma pasta usada pelo CLI para as 32 figuras numeradas, unificando a saída de "previsão" e "resultados e discussão" numa única pasta —, e uma discussão textual comparando o vencedor geral com o vencedor isolado do grupo ML quando eles diferem.
+4. WHEN nenhum modelo é aplicável para um produto em uma das duas tabelas (ex.: `not_applicable`, `NaN` em `mape`) THEN `select_overall_best` SHALL ignorar essas linhas e escolher entre os candidatos restantes, sem abortar; se nenhum candidato for aplicável em nenhuma tabela, o produto SHALL ficar de fora do dicionário retornado.
+
+**Independent Test**: `tests/unit/test_models.py::test_select_overall_best_picks_cross_group_winner_by_lowest_mape` — tabela ML sintética + tabela de séries temporais sintética com vencedor cruzado ⇒ `select_overall_best` retorna o modelo de menor MAPE global por produto, inclusive quando ele vem da tabela de séries temporais; `test_select_overall_best_ignores_products_with_no_applicable_model` cobre a ausência de candidatos aplicáveis.
+
+---
+
 ## Edge Cases
 
 - WHEN o CSV tem apenas 1 ano de histórico THEN interpolação, média móvel (janela ≤ n) e plots SHALL rodar; ML e clusterização de meses SHALL ser puladas com `WARNING` e marcadas na tabela de métricas.
@@ -406,46 +453,48 @@ O case BebiBem exige uma previsão de demanda para 2025 das três linhas da loja
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| DEM-01 | P1: Ingestão — loader wide/long | Design | Pending |
-| DEM-02 | P1: Ingestão — validação e exit codes | Design | Pending |
-| DEM-03 | P1: Ingestão — meses ausentes/duplicados | Design | Pending |
-| DEM-04 | P1: Gráfico de pontos | Design | Pending |
-| DEM-05 | P1: Interpolação linear | Design | Pending |
-| DEM-06 | P1: Interpolação polinomial | Design | Pending |
-| DEM-07 | P1: Média móvel | Design | Pending |
-| DEM-08 | P1: Matriz de features | Design | Pending |
-| DEM-09 | P1: Comparação Ridge/RF/GB | Design | Pending |
-| DEM-10 | P1: Backtest 2024 + métricas | Design | Pending |
-| DEM-11 | P1: Previsão 2025 mensal e anual | Design | Pending |
-| DEM-12 | P1: Clusterização de meses | Design | Pending |
-| DEM-13 | P1: Clusterização de séries produto-ano | Design | Pending |
-| DEM-14 | P1: Exportação PNG/SVG/PDF determinística | Design | Pending |
-| DEM-15 | P1: CLI e exit codes | Design | Pending |
-| DEM-16 | P1: Notebook narrativo | Design | Pending |
-| DEM-17 | P2: Dockerfile do script (`docker/pipeline.Dockerfile`) | Design | Pending |
-| DEM-18 | P2: Dockerfile do Jupyter (`docker/jupyter.Dockerfile`) | Design | Pending |
-| DEM-19 | P2: Cenário capacidade × demanda | Design | Pending |
-| DEM-20 | P3: README e índice de artefatos | Design | Pending |
-| DEM-21 | P1: Anotação da equação polinomial nas figuras | Design | Pending |
-| DEM-22 | P1: Fórmulas formais documentadas | Design | Pending |
-| DEM-23 | P1: Regressão linear (equação normal) | Design | Pending |
-| DEM-24 | P1: Regressão exponencial (linearizada e equação normal) | Design | Pending |
-| DEM-25 | P2: Regressão logística de regime + matriz de confusão | Design | Pending |
+| DEM-01 | P1: Ingestão — loader wide/long | Design | Verified |
+| DEM-02 | P1: Ingestão — validação e exit codes | Design | Verified |
+| DEM-03 | P1: Ingestão — meses ausentes/duplicados | Design | Verified |
+| DEM-04 | P1: Gráfico de pontos | Design | Verified |
+| DEM-05 | P1: Interpolação linear | Design | Verified |
+| DEM-06 | P1: Interpolação polinomial | Design | Verified |
+| DEM-07 | P1: Média móvel | Design | Verified |
+| DEM-08 | P1: Matriz de features | Design | Verified |
+| DEM-09 | P1: Comparação Ridge/RF/GB | Design | Verified |
+| DEM-10 | P1: Backtest 2024 + métricas | Design | Verified |
+| DEM-11 | P1: Previsão 2025 mensal e anual | Design | Verified |
+| DEM-12 | P1: Clusterização de meses | Design | Verified |
+| DEM-13 | P1: Clusterização de séries produto-ano | Design | Verified |
+| DEM-14 | P1: Exportação PNG/SVG/PDF determinística | Design | Verified |
+| DEM-15 | P1: CLI e exit codes | Design | Verified |
+| DEM-16 | P1: Notebook narrativo | Design | Verified |
+| DEM-17 | P2: Dockerfile do script (`docker/pipeline.Dockerfile`) | Design | Verified |
+| DEM-18 | P2: Dockerfile do Jupyter (`docker/jupyter.Dockerfile`) | Design | Verified |
+| DEM-19 | P2: Cenário capacidade × demanda | Design | Verified |
+| DEM-20 | P3: README e índice de artefatos | Design | Verified |
+| DEM-21 | P1: Anotação da equação polinomial nas figuras | Design | Verified |
+| DEM-22 | P1: Fórmulas formais documentadas | Design | Verified |
+| DEM-23 | P1: Regressão linear (equação normal) | Design | Verified |
+| DEM-24 | P1: Regressão exponencial (linearizada e equação normal) | Design | Verified |
+| DEM-25 | P2: Regressão logística de regime + matriz de confusão | Design | Verified |
+| DEM-26 | P2: Comparação com métodos de séries temporais | Design | Verified |
+| DEM-27 | P1: Seleção unificada do melhor modelo + previsão final | Design | Verified |
 
 **ID format:** `DEM-NN`
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
-**Coverage:** 25 requisitos totais; mapeamento para tasks em `tasks.md`.
+**Coverage:** 27 requisitos totais; mapeamento para tasks em `tasks.md`.
 
 ---
 
 ## Success Criteria
 
-- [ ] `uv run bebibem-forecast` termina em exit code `0` e grava 28 figuras × 3 formatos + 13 tabelas CSV.
-- [ ] `forecast_annual.csv` responde a questão 5 com um inteiro de unidades por linha de produto, mais MAPE e MAD de holdout.
-- [ ] Duas execuções consecutivas produzem SVG/PDF com hash idêntico e métricas idênticas até `1e-10`.
-- [ ] `uv run pytest` passa com cobertura ≥ 85% em `src/bebibem`.
-- [ ] `docker build -f docker/pipeline.Dockerfile` + `docker run` reproduz os artefatos em máquina sem Python instalado; `docker build -f docker/jupyter.Dockerfile` + `docker run -p 8888:8888` serve o notebook.
-- [ ] Toda figura de interpolação polinomial exibe a equação ajustada (`y = …`) com grau e R² legíveis na imagem exportada.
-- [ ] Tabela comparativa de erros (MAD, MAPE, MSE, RMSE, MPE) disponível em CSV e como figura-tabela com as fórmulas no rodapé.
-- [ ] Todas as fórmulas do formulário matemático aparecem em LaTeX no `design.md`, no notebook e (as de erro) no README, com símbolos consistentes.
-- [ ] Notebook executa ponta a ponta via `pytest --nbmake` sem erro.
+- [x] `uv run bebibem-forecast` termina em exit code `0` e grava 32 figuras × 3 formatos (organizadas em subpastas por etapa: `pontos/`, `interpolacao/`, `media_movel/`, `clusters/`, `backtest_comparativo/`, `metricas/`, `regressao_classica/`, `classificacao/`, `previsao/`, `capacidade/`) + 13 tabelas CSV.
+- [x] `forecast_annual.csv` responde a questão 5 com um inteiro de unidades por linha de produto, mais MAPE e MAD de holdout.
+- [x] Duas execuções consecutivas produzem SVG/PDF com hash idêntico e métricas idênticas até `1e-10`.
+- [x] `uv run pytest` passa com cobertura ≥ 85% em `src/bebibem`.
+- [x] `docker build -f docker/pipeline.Dockerfile` + `docker run` reproduz os artefatos em máquina sem Python instalado; `docker build -f docker/jupyter.Dockerfile` + `docker run -p 8888:8888` serve o notebook.
+- [x] Toda figura de interpolação polinomial exibe a equação ajustada (`y = …`) com grau e R² legíveis na imagem exportada.
+- [x] Tabela comparativa de erros (MAD, MAPE, MSE, RMSE, MPE) disponível em CSV e como figura-tabela com as fórmulas no rodapé.
+- [x] Todas as fórmulas do formulário matemático aparecem em LaTeX no `design.md`, no notebook e (as de erro) no README, com símbolos consistentes.
+- [x] Notebook executa ponta a ponta via `pytest --nbmake` sem erro.

@@ -230,6 +230,7 @@ Repositório novo (só `docs/`), então o reuso é externo — nada de reimpleme
   - `forecast_recursive(estimator, history, month_clusters, horizon_years=1, start="2025-01") -> pd.Series` — `12 × horizon_years` passos; `lag_1` = previsão anterior; `lag_12` = real enquanto existir, depois previsão (com `WARNING` de acúmulo); nunca reprevê meses históricos; trunca negativos em 0 com `WARNING`
   - `validate_horizon_years(value: int) -> None` — aceita `{1,2,3}`, senão `InputError`
   - `forecast_tables(forecasts, best_models, holdout_metrics) -> tuple[pd.DataFrame, pd.DataFrame]` — `forecast_monthly` + `forecast_annual` (total inteiro por produto e ano, com `mape_holdout` e `mad_holdout`)
+  - `reconstruct_winning_series(product, winning_model, *, ts_models, analysis_frame, month_cluster_labels, ml_estimators, holdout_year=2024) -> pd.Series` — reconstrói a saída do modelo vencedor geral (DEM-27) para todo o histórico observado, `T=0`..`T=35`: séries temporais retornam `fitted_values` + `forecast` concatenados; modelos ML são refeitos na janela pré-holdout e avaliados por `in_sample` (treino) + `recursive_backtest` (holdout); o primeiro ano observado, sem `lag_12` real (nenhum ano anterior à série), é preenchido por `_backcast_first_year` com o mesmo estimador ajustado, usando `lag_1`/`lag_12` como proxy sazonal-naive (média do mesmo mês nos anos de treino seguintes) via `features.backcast_row`. Extraído do notebook (era `def` em célula, violando DEM-16 AC2) para `forecast.py` em 2026-09-21; backcast do primeiro ano adicionado em 2026-09-22.
 - **Requisitos**: DEM-11
 
 ### `capacity.py`
@@ -255,8 +256,12 @@ Repositório novo (só `docs/`), então o reuso é externo — nada de reimpleme
 ### `figures.py`
 
 - **Purpose**: Construção de cada figura do catálogo (uma função por figura, sem I/O de disco além de `save_figure`).
-- **Interfaces**: `fig_points_product`, `fig_points_all`, `fig_interpolation`, `fig_moving_average`, `fig_month_clusters`, `fig_series_clusters`, `fig_backtest`, `fig_metrics_bar`, `fig_error_table`, `fig_regression`, `fig_confusion_matrix`, `fig_forecast_product`, `fig_forecast_all`, `fig_capacity`
-- **Requisitos**: DEM-04, DEM-06, DEM-07, DEM-10, DEM-11, DEM-12, DEM-13, DEM-19, DEM-21, DEM-22
+- **Interfaces**: `fig_points_product`, `fig_points_all`, `fig_interpolation`, `fig_moving_average`, `fig_month_clusters`, `fig_series_clusters`, `fig_backtest`, `fig_metrics_bar`, `fig_error_table`, `fig_combined_error_table`, `fig_regression`, `fig_confusion_matrix`, `fig_forecast_product`, `fig_forecast_all`, `fig_forecast_2025_bar`, `fig_forecast_2025_total_bar`, `fig_forecast_2025_curves_all`, `fig_historical_bar`, `fig_capacity`
+- **Eixo X**: toda figura de série temporal usa o helper interno `_month_index` (`T = 12(ano−2022) + (mês−1)`, `T=0` em jan/2022) no eixo X — nunca a data de calendário. `fig_forecast_2025_bar`/`fig_forecast_2025_total_bar` usam `T` contínuo restrito a `T=36`..`T=47` (2025) e permanecem deliberadamente isolados do histórico (DEM-11 AC8: misturar barra com ponto disperso mistura geometrias incompatíveis). `fig_forecast_2025_curves_all` usa `T` contínuo completo e aceita um parâmetro opcional `history` que sobrepõe os pontos observados de 2022–2024 (`T=0`..`T=35`, mesma geometria de linha) na mesma figura — faixa cinza demarca o holdout 2024, faixa azul demarca a previsão 2025; sem `history`, o comportamento antigo (só T=36..47) é preservado. Exceção deliberada: `fig_historical_bar` usa índice local `0`–`11` **dentro de cada ano** (comparação lado a lado entre 2022–2024); `fig_month_clusters`/`fig_series_clusters` usam o mês calendário 1–12 (perfil sazonal, não linha do tempo).
+- **`fig_backtest(actual, predictions, product, holdout_year=2024)`**: desde 2026-09-21 plota todo o histórico observado (antes só `dates.year == holdout_year`), com o holdout demarcado por uma faixa cinza (`axvspan`) em vez de recortar os pontos observados.
+- **`fig_forecast_2025_curves_all(forecast_frame, holdout_metrics=None, history=None)`**: sobrepõe, num único gráfico, a curva de previsão 2025 de cada produto (modelo vencedor geral, DEM-27), rotulada com `produto (modelo, MAPE=x%)`; com `history`, cada curva é precedida pelos pontos observados 2022–2024 do produto na mesma cor, ligados por `_bridge`; usado apenas pelo notebook (`previsao/previsao_2025_curvas`), não faz parte do catálogo de 32 figuras do CLI.
+- **`fig_combined_error_table(metrics)`**: tabela figura dos 9 candidatos (ML/clássico + séries temporais) com colunas `produto`, `modelo`, `grupo`, MAD, MSE, RMSE, MAPE, MPE, destacando o vencedor **geral** (`vencedor_geral`, DEM-27) — nunca o vencedor por grupo isolado (`fig_error_table`/`fig_timeseries_error_table` usam `vencedor`); usado apenas pelo notebook (`previsao/tabela_comparativa_modelos`), não faz parte do catálogo de 32 figuras do CLI.
+- **Requisitos**: DEM-04, DEM-06, DEM-07, DEM-10, DEM-11, DEM-12, DEM-13, DEM-16, DEM-19, DEM-21, DEM-22, DEM-27
 
 ### `formulas.py`
 
@@ -319,28 +324,38 @@ Repositório novo (só `docs/`), então o reuso é externo — nada de reimpleme
 
 | # | Nome do arquivo | Conteúdo | Requisito |
 | --- | --- | --- | --- |
-| 01–03 | `01_pontos_<produto>` | Dispersão dos pontos observados por linha | DEM-04 |
-| 04 | `04_pontos_todos` | 3 séries sobrepostas | DEM-04 |
-| 05–07 | `05_interpolacao_<produto>` | Pontos + linear + polinomial **com equação anotada** | DEM-05/06/21 |
-| 08–10 | `08_media_movel_<produto>` | Pontos + MA(3) + MA(12) | DEM-07 |
-| 11 | `11_clusters_meses` | Perfis sazonais coloridos por regime + silhouette | DEM-12 |
-| 12 | `12_clusters_series` | 9 séries produto-ano coloridas por cluster | DEM-13 |
-| 13–15 | `13_backtest_<produto>` | Real 2024 × previsto por modelo | DEM-10 |
+| 01–03 | `01_pontos_<produto>` | Dispersão dos pontos observados por linha (eixo X = `T`, `T=0` em jan/2022) | DEM-04 |
+| 04 | `04_pontos_todos` | 3 séries sobrepostas (eixo X = `T`) | DEM-04 |
+| 05–07 | `05_interpolacao_<produto>` | Pontos + linear + polinomial **com equação anotada** (eixo X = `T`) | DEM-05/06/21 |
+| 08–10 | `08_media_movel_<produto>` | Pontos + MA(3) + MA(12) (eixo X = `T`) | DEM-07 |
+| 11 | `11_clusters_meses` | Perfis sazonais coloridos por regime + silhouette (eixo X = mês calendário 1–12, não `T`) | DEM-12 |
+| 12 | `12_clusters_series` | 9 séries produto-ano coloridas por cluster (eixo X = mês calendário 1–12, não `T`) | DEM-13 |
+| 13–15 | `13_backtest_<produto>` | Real 2024 × previsto por modelo (eixo X = `T`, `T=24`..`T=35`) | DEM-10 |
 | 16 | `16_metricas_mape` | Barras de MAPE por modelo × produto (6 modelos) | DEM-10 |
 | 17 | `17_tabela_erros` | Figura-tabela com MAD, MSE, RMSE, MAPE e MPE por (produto, modelo), vencedor destacado, fórmulas no rodapé | DEM-10, DEM-22 |
-| 18–20 | `18_regressao_<produto>` | Pontos + reta (equação normal) + curva exponencial, com as duas equações e R² anotados | DEM-23, DEM-24, DEM-21 |
+| 18–20 | `18_regressao_<produto>` | Pontos + reta (equação normal) + curva exponencial, com as duas equações e R² anotados (eixo X = `T`) | DEM-23, DEM-24, DEM-21 |
 | 21–23 | `21_confusao_<produto>` | Matriz de confusão 2×2 do regime `alta`, com acurácia/precisão/recall/F1 e fórmulas no rodapé | DEM-25 |
-| 24–26 | `24_previsao_<produto>` | Histórico 2022–2024 + previsão futura | DEM-11 |
-| 27 | `27_previsao_todos` | Previsão das 3 linhas | DEM-11 |
-| 28 | `28_capacidade_case` | Capacidade caixas/mês antes/depois | DEM-19 |
+| 24–26 | `24_previsao_<produto>` | Histórico 2022–2024 + previsão futura (eixo X = `T` contínuo do histórico à previsão; `T=36` = jan/2025) | DEM-11 |
+| 27 | `27_previsao_todos` | Previsão das 3 linhas (eixo X = `T`) | DEM-11 |
+| 28 | `capacidade/28_capacidade_case` | Capacidade caixas/mês antes/depois | DEM-19 |
+| 29–31 | `previsao/29_previsao_2025_<produto>` | Barras — apenas os 12 meses de 2025, sem histórico (eixo X = `T` contínuo, `T=36`..`T=47`) | DEM-11 |
+| 32 | `previsao/32_previsao_2025_total` | Barras — soma mensal das 3 linhas em 2025, total do ano no título (eixo X = `T` contínuo, `T=36`..`T=47`) | DEM-11 |
 
-Total: 28 figuras × 3 formatos = 84 arquivos + `index.csv`.
+Cada figura reside sob uma subpasta por etapa: `pontos/`, `interpolacao/`, `media_movel/`, `clusters/`, `backtest_comparativo/`, `metricas/`, `regressao_classica/`, `classificacao/`, `previsao/`, `capacidade/` — nenhuma figura numerada fica na raiz de `png/svg/pdf`.
+
+Total: 32 figuras × 3 formatos = 96 arquivos + `index.csv`.
 
 ---
 
 ## Formulário matemático (fonte única — DEM-22)
 
 Símbolos: $y_t$ = demanda observada no instante $t$; $\hat{y}_t$ = previsão; $n$ = nº de observações; $w$ = janela da média móvel; $d$ = grau do polinômio; $k$ = nº de clusters; $T_0=\{t: y_t \neq 0\}$.
+
+**Índice inteiro do mês (eixo X das figuras temporais)**: os índices $t$ (interpolação, média móvel) e $x$ (ajuste polinomial, regressão clássica) usados nas fórmulas desta seção são o mesmo número inteiro `T`, contado a partir do início do histórico:
+
+$$T = 12\,(\text{ano} - 2022) + (\text{mês} - 1)$$
+
+`T=0` corresponde a janeiro/2022, `T=35` a dezembro/2024 (fim do histórico) e `T=36` a janeiro/2025 (início da previsão). Toda figura de série temporal (pontos observados, interpolação, média móvel, backtest, regressão clássica, histórico + previsão) exibe `T` no eixo X — nunca a data de calendário. Exceção deliberada: `fig_historical_bar` (DEM-16 AC7) usa índice local `0`–`11` **dentro de cada ano**, para alinhar visualmente o mesmo mês entre 2022, 2023 e 2024.
 
 **Interpolação linear** entre $(t_i, y_i)$ e $(t_{i+1}, y_{i+1})$:
 
