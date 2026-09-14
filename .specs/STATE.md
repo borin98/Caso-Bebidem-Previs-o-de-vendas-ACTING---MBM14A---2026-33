@@ -109,10 +109,11 @@
 ## Handoff
 
 - **Feature**: previsao-demanda-bebibem (`.specs/features/previsao-demanda-bebibem/`)
-- **Phase / Task**: Planejamento concluído (Specify + Discuss + Design + Tasks). Execute não iniciado.
-- **Completed**: spec.md (25 requisitos), context.md, design.md (+ Formulário matemático, 28 fórmulas), tasks.md (26 tasks), STATE.md (AD-001..AD-013), README.md (formulário matemático em LaTeX)
-- **In-progress** (file:line): nenhum
-- **Next step**: usuário aprova spec/design/tasks, confirma matriz de testes e entrega `data/raw/demanda_loja_propria.csv`; então iniciar Fase 1 (T1–T4) com a oferta de sub-agentes (6 fases ⇒ 1 worker por fase + Verifier final).
-- **Blockers**: CSV real ainda não fornecido (bloqueia apenas T23); repositório ainda sem `git init` (T1)
-- **Uncommitted files**: `.specs/**` (repositório ainda não inicializado no Git)
-- **Branch**: n/a (sem repositório Git)
+- **Phase / Task**: Execute complete; review repairs and evidence complete.
+- **Completed**: source fixes, regression tests, notebook isolation, two Docker images, real CSV runs, Jupyter `/lab` smoke test, README and lifecycle metadata.
+- **In-progress**: none
+- **Next step**: none; feature validated end to end with real CSV.
+- **Blockers**: none
+- **Validation**: `.specs/features/previsao-demanda-bebibem/validation.md` — PASS; 103 tests, 90.23% coverage, notebook gate, Docker builds/runtime, and deterministic real-CSV outputs verified.
+- **Uncommitted files**: `.DS_Store` preexisting and not related.
+- **Branch**: `main`

@@ -10,10 +10,10 @@ Implemente estas tasks com a skill `tlc-spec-driven`: **ative-a pelo nome e siga
 
 **Design**: `.specs/features/previsao-demanda-bebibem/design.md`
 **Spec**: `.specs/features/previsao-demanda-bebibem/spec.md`
-**Status**: Draft — aguardando aprovação
+**Status**: Executed — implementation, review repairs, and validation complete
 
-> **6 fases ⇒ oferta de sub-agentes obrigatória antes do Execute** (um worker por fase, sequencial) + Verifier final automático.
-> **Pré-requisito operacional**: `data/raw/demanda_loja_propria.csv` fornecido pelo usuário antes da T23 (as demais tasks usam `data/example/demanda_exemplo.csv`).
+> Execution mode selected: inline execution. No sub-agents used.
+> Operational prerequisite satisfied: `data/raw/demanda_loja_propria.csv` was available and verified against the case source.
 
 ---
 
@@ -116,10 +116,10 @@ T18 ────┼→ T20 ─┼──→ T23
 **Tools**: MCP: NONE · Skill: NONE
 
 **Done when**:
-- [ ] `git init` executado e primeiro commit criado
-- [ ] `.gitignore` cobre `.venv/`, `__pycache__/`, `reports/figures/`, `reports/tables/`, `*.ipynb_checkpoints`, `.pytest_cache/`, `.ruff_cache/`
-- [ ] `data/raw/` e `reports/` versionados com `.gitkeep`
-- [ ] `docs/` e `.specs/` preservados intactos
+- [x] `git init` executado e primeiro commit criado
+- [x] `.gitignore` cobre `.venv/`, `__pycache__/`, `reports/figures/`, `reports/tables/`, `*.ipynb_checkpoints`, `.pytest_cache/`, `.ruff_cache/`
+- [x] `data/raw/` e `reports/` versionados com `.gitkeep`
+- [x] `docs/` e `.specs/` preservados intactos
 
 **Tests**: none · **Gate**: build (apenas estrutura)
 
@@ -135,12 +135,12 @@ T18 ────┼→ T20 ─┼──→ T23
 **Tools**: MCP: NONE · Skill: NONE
 
 **Done when**:
-- [ ] `requires-python = ">=3.11"`; deps `numpy`, `pandas`, `scikit-learn`, `matplotlib`
-- [ ] Extra `notebook` (`jupyterlab`, `ipykernel`) e grupo `dev` (`pytest`, `pytest-cov`, `ruff`, `nbmake`)
-- [ ] `[project.scripts] bebibem-forecast = "bebibem.cli:main"`
-- [ ] `hatchling` com `packages = ["src/bebibem"]`; `[tool.coverage.report] fail_under = 85`
-- [ ] `uv sync` conclui e `uv.lock` está commitado
-- [ ] `uv run python -c "import numpy, pandas, sklearn, matplotlib"` retorna 0
+- [x] `requires-python = ">=3.11"`; deps `numpy`, `pandas`, `scikit-learn`, `matplotlib`
+- [x] Extra `notebook` (`jupyterlab`, `ipykernel`) e grupo `dev` (`pytest`, `pytest-cov`, `ruff`, `nbmake`)
+- [x] `[project.scripts] bebibem-forecast = "bebibem.cli:main"`
+- [x] `hatchling` com `packages = ["src/bebibem"]`; `[tool.coverage.report] fail_under = 85`
+- [x] `uv sync` conclui e `uv.lock` está commitado
+- [x] `uv run python -c "import numpy, pandas, sklearn, matplotlib"` retorna 0
 
 **Tests**: none · **Gate**: build
 
@@ -156,10 +156,10 @@ T18 ────┼→ T20 ─┼──→ T23
 **Tools**: MCP: NONE · Skill: NONE
 
 **Done when**:
-- [ ] Constantes: `SEED=42`, `PNG_DPI=300`, `FIGURE_FORMATS=("png","svg","pdf")`, `MIN_OBS_FOR_ML=24`, `HOLDOUT_YEAR=2024`, `FORECAST_YEAR=2025`
-- [ ] `CASE_CAPACITY` com sucos 12.000 → 15.600, geleias 3.000, doces 5.000 caixas/mês
-- [ ] `MODEL_SPECS` declara os 3 estimadores com hiperparâmetros fixos do design
-- [ ] Nenhum caminho absoluto hard-coded (tudo relativo à raiz do projeto)
+- [x] Constantes: `SEED=42`, `PNG_DPI=300`, `FIGURE_FORMATS=("png","svg","pdf")`, `MIN_OBS_FOR_ML=24`, `HOLDOUT_YEAR=2024`, `FORECAST_YEAR=2025`
+- [x] `CASE_CAPACITY` com sucos 12.000 → 15.600, geleias 3.000, doces 5.000 caixas/mês
+- [x] `MODEL_SPECS` declara os 3 estimadores com hiperparâmetros fixos do design
+- [x] Nenhum caminho absoluto hard-coded (tudo relativo à raiz do projeto)
 
 **Tests**: none (constantes verificadas em `test_capacity.py`, T13) · **Gate**: build
 
@@ -175,10 +175,10 @@ T18 ────┼→ T20 ─┼──→ T23
 **Tools**: MCP: NONE · Skill: NONE
 
 **Done when**:
-- [ ] Layout *wide* (`produto,ano,jan..dez`), 9 linhas (3 produtos × 3 anos)
-- [ ] Valores com sazonalidade e tendência plausíveis (mesma ordem de grandeza do case)
-- [ ] Exatamente 1 célula vazia (mês ausente) para exercitar o caminho de interpolação
-- [ ] Arquivo commitado e referenciado nos testes como fixture
+- [x] Layout *wide* (`produto,ano,jan..dez`), 9 linhas (3 produtos × 3 anos)
+- [x] Valores com sazonalidade e tendência plausíveis (mesma ordem de grandeza do case)
+- [x] Exatamente 1 célula vazia (mês ausente) para exercitar o caminho de interpolação
+- [x] Arquivo commitado e referenciado nos testes como fixture
 
 **Tests**: none · **Gate**: build
 
@@ -194,12 +194,12 @@ T18 ────┼→ T20 ─┼──→ T23
 **Tools**: MCP: NONE · Skill: NONE
 
 **Done when**:
-- [ ] `load_demand` retorna tidy (`produto, produto_label, ano, mes, data, unidades`) para layouts wide e long
-- [ ] Nomes de mês PT-BR (`jan`, `janeiro`, `Jan`) aceitos no layout long
-- [ ] `InputError` para: arquivo ausente, coluna faltante, duplicidade, valor não numérico/negativo/nulo — cada mensagem cita o dado ofensor
-- [ ] Mês ausente vira linha `NaN` + `WARNING` (sem abortar)
-- [ ] 7 ACs da história "Ingestão" com 1 teste cada (mín. 9 testes, incluindo casos de mensagem de erro)
-- [ ] Gate quick passa: `uv run pytest tests/unit -q`
+- [x] `load_demand` retorna tidy (`produto, produto_label, ano, mes, data, unidades`) para layouts wide e long
+- [x] Nomes de mês PT-BR (`jan`, `janeiro`, `Jan`) aceitos no layout long
+- [x] `InputError` para: arquivo ausente, coluna faltante, duplicidade, valor não numérico/negativo/nulo — cada mensagem cita o dado ofensor
+- [x] Mês ausente vira linha `NaN` + `WARNING` (sem abortar)
+- [x] 7 ACs da história "Ingestão" com 1 teste cada (mín. 9 testes, incluindo casos de mensagem de erro)
+- [x] Gate quick passa: `uv run pytest tests/unit -q`
 
 **Tests**: unit · **Gate**: quick
 
@@ -215,13 +215,13 @@ T18 ────┼→ T20 ─┼──→ T23
 **Tools**: MCP: NONE · Skill: NONE
 
 **Done when**:
-- [ ] `save_figure` grava `png` (300 dpi), `svg` e `pdf` em subdiretórios por formato, criando-os quando ausentes
-- [ ] Metadados de data suprimidos ⇒ SHA-256 idêntico em duas chamadas com a mesma figura
-- [ ] `--formats` restrito ao subconjunto pedido; formato inválido levanta `InputError`
-- [ ] `write_figure_index` gera `index.csv` com `nome, titulo, formatos, caminho_relativo`
-- [ ] `annotate_equation` insere `Text` com `bbox` semitransparente e devolve o artista
-- [ ] 6 ACs da história "Exportação" com 1 teste cada
-- [ ] Gate quick passa
+- [x] `save_figure` grava `png` (300 dpi), `svg` e `pdf` em subdiretórios por formato, criando-os quando ausentes
+- [x] Metadados de data suprimidos ⇒ SHA-256 idêntico em duas chamadas com a mesma figura
+- [x] `--formats` restrito ao subconjunto pedido; formato inválido levanta `InputError`
+- [x] `write_figure_index` gera `index.csv` com `nome, titulo, formatos, caminho_relativo`
+- [x] `annotate_equation` insere `Text` com `bbox` semitransparente e devolve o artista
+- [x] 6 ACs da história "Exportação" com 1 teste cada
+- [x] Gate quick passa
 
 **Tests**: unit · **Gate**: quick
 
@@ -237,15 +237,15 @@ T18 ────┼→ T20 ─┼──→ T23
 **Tools**: MCP: NONE · Skill: NONE
 
 **Done when**:
-- [ ] Grade densa (10 pontos/mês) e igualdade nos instantes observados (tol. `1e-9`)
-- [ ] `fill_gaps_linear` preenche o buraco do dataset de exemplo com o valor analítico esperado
-- [ ] `select_degree` percorre `d ∈ {1..5}`, escolhe o menor RMSE de holdout, desempata pelo menor `d` e devolve a tabela de candidatos
-- [ ] Série gerada por polinômio de grau 2 + ruído ⇒ grau escolhido ≤ 3 (teste anti-overfitting)
-- [ ] `polynomial_fit` devolve coeficientes na base canônica, `r2` e `r2_adj`; `--poly-degree` fora de `[1,5]` levanta `InputError`
-- [ ] `polynomial_equation_label` é determinística: reta perfeita grau 1 ⇒ `$y = 2,000 x + 1,000$` + `grau = 1 | R² = 1,0000 | R²_aj = 1,0000`
-- [ ] Notação científica aplicada fora de `[1e-3, 1e4)`; quebra de linha a cada 3 termos
-- [ ] 10 ACs da história "Interpolação" com 1 teste cada
-- [ ] Gate quick passa
+- [x] Grade densa (10 pontos por intervalo) e igualdade nos instantes observados (tol. `1e-9`)
+- [x] `fill_gaps_linear` preenche o buraco do dataset de exemplo com o valor analítico esperado
+- [x] `select_degree` percorre `d ∈ {1..5}`, escolhe o menor RMSE de holdout, desempata pelo menor `d` e devolve a tabela de candidatos
+- [x] Série gerada por polinômio de grau 2 + ruído ⇒ grau escolhido ≤ 3 (teste anti-overfitting)
+- [x] `polynomial_fit` devolve coeficientes na base canônica, `r2` e `r2_adj`; `--poly-degree` fora de `[1,5]` levanta `InputError`
+- [x] `polynomial_equation_label` é determinística: reta perfeita grau 1 ⇒ `$y = 2,000 x + 1,000$` + `grau = 1 | R² = 1,0000 | R²_aj = 1,0000`
+- [x] Notação científica aplicada fora de `[1e-3, 1e4)`; quebra de linha a cada 3 termos
+- [x] 10 ACs da história "Interpolação" com 1 teste cada
+- [x] Gate quick passa
 
 **Tests**: unit · **Gate**: quick
 
@@ -261,12 +261,12 @@ T18 ────┼→ T20 ─┼──→ T23
 **Tools**: MCP: NONE · Skill: NONE
 
 **Done when**:
-- [ ] `moving_average` com `w=3` sobre `[1..12]` produz a sequência esperada e `w-1` `NaN` iniciais
-- [ ] Janela par centrada usa média dupla e mantém alinhamento
-- [ ] `moving_average_table` gera coluna por janela por produto
-- [ ] Janela > n observações levanta `InputError`
-- [ ] 5 ACs da história "Média móvel" com 1 teste cada
-- [ ] Gate quick passa
+- [x] `moving_average` com `w=3` sobre `[1..12]` produz a sequência esperada e `w-1` `NaN` iniciais
+- [x] Janela par centrada usa média dupla e mantém alinhamento
+- [x] `moving_average_table` gera coluna por janela por produto
+- [x] Janela > n observações levanta `InputError`
+- [x] 5 ACs da história "Média móvel" com 1 teste cada
+- [x] Gate quick passa
 
 **Tests**: unit · **Gate**: quick
 
@@ -281,12 +281,11 @@ T18 ────┼→ T20 ─┼──→ T23
 
 **Tools**: MCP: NONE · Skill: NONE
 
-**Done when**:
-- [ ] `FORMULAS` contém exatamente as 28 chaves do design (17 originais + `normal_equation`, `linear_model`, `linear_sums`, `exponential_model`, `exponential_loglinear`, `logistic_sigmoid`, `logloss`, `confusion_matrix`, `accuracy`, `precision_recall`, `f1`), todas com string LaTeX não vazia
-- [ ] `SYMBOLS` define `y_t`, `\hat{y}_t`, `n`, `w`, `d`, `k`
-- [ ] `metric_footnote(["mad","mape"])` devolve rodapé mathtext contendo as duas fórmulas, sem quebrar o parser do matplotlib (teste renderiza em figura `Agg`)
-- [ ] Fórmulas idênticas às do `design.md` (teste compara com o bloco do documento ou com fixture derivada dele)
-- [ ] Gate quick passa
+- [x] `FORMULAS` contém exatamente as 28 chaves do design (17 originais + `normal_equation`, `linear_model`, `linear_sums`, `exponential_model`, `exponential_loglinear`, `logistic_sigmoid`, `logloss`, `confusion_matrix`, `accuracy`, `precision_recall`, `f1`), todas com string LaTeX não vazia
+- [x] `SYMBOLS` define `y_t`, `\hat{y}_t`, `n`, `w`, `d`, `k`
+- [x] `metric_footnote(["mad","mape"])` devolve rodapé mathtext contendo as duas fórmulas, sem quebrar o parser do matplotlib (teste renderiza em figura `Agg`)
+- [x] Fórmulas idênticas às do `design.md` (teste compara com o bloco do documento ou com fixture derivada dele)
+- [x] Gate quick passa
 
 **Tests**: unit · **Gate**: quick
 
@@ -302,13 +301,13 @@ T18 ────┼→ T20 ─┼──→ T23
 **Tools**: MCP: NONE · Skill: NONE
 
 **Done when**:
-- [ ] `seasonal_index_matrix` gera 12 linhas × N produtos com índice = média do mês ÷ média anual
-- [ ] `k` escolhido pelo maior silhouette em `{2,3,4}`; scores registrados no resultado
-- [ ] Rótulos reordenados por índice decrescente (`alta`/`media`/`baixa`) — estáveis entre execuções
-- [ ] `cluster_series` normaliza z-score as 9 séries e devolve rótulo por (produto, ano)
-- [ ] Amostras < 3 ⇒ `skipped=True` com `reason`, sem exceção
-- [ ] 6 ACs da história "Clusterização" com 1 teste cada + teste de determinismo (2 execuções, mesmos rótulos)
-- [ ] Gate quick passa
+- [x] `seasonal_index_matrix` gera 12 linhas × N produtos com índice = média do mês ÷ média anual
+- [x] `k` escolhido pelo maior silhouette em `{2,3,4}`; scores registrados no resultado
+- [x] Rótulos reordenados por índice decrescente (`alta`/`media`/`baixa`) — estáveis entre execuções
+- [x] `cluster_series` normaliza z-score as 9 séries e devolve rótulo por (produto, ano)
+- [x] Amostras < 3 ⇒ `skipped=True` com `reason`, sem exceção
+- [x] 6 ACs da história "Clusterização" com 1 teste cada + teste de determinismo (2 execuções, mesmos rótulos)
+- [x] Gate quick passa
 
 **Tests**: unit · **Gate**: quick
 
@@ -324,12 +323,12 @@ T18 ────┼→ T20 ─┼──→ T23
 **Tools**: MCP: NONE · Skill: NONE
 
 **Done when**:
-- [ ] Colunas exatas: `lag_1`, `lag_12`, `mes_2..mes_12`, `trend`, `cluster_*`
-- [ ] Linhas sem `lag_12` disponível são descartadas do treino (sem `NaN` na matriz final)
-- [ ] `split_train_holdout` separa 2024 sem vazamento (nenhuma linha de 2024 no treino)
-- [ ] `next_row` monta features de um mês futuro a partir de histórico + previsões
-- [ ] Série < 24 observações ⇒ sinaliza `insufficient_data` sem exceção
-- [ ] Gate quick passa
+- [x] Colunas exatas: `lag_1`, `lag_12`, `mes_2..mes_12`, `trend`, `cluster_*`
+- [x] Linhas sem `lag_12` disponível são descartadas do treino (sem `NaN` na matriz final)
+- [x] `split_train_holdout` separa 2024 sem vazamento (nenhuma linha de 2024 no treino)
+- [x] `next_row` monta features de um mês futuro a partir de histórico + previsões
+- [x] Série < 24 observações ⇒ sinaliza `insufficient_data` sem exceção
+- [x] Gate quick passa
 
 **Tests**: unit · **Gate**: quick
 
@@ -345,18 +344,18 @@ T18 ────┼→ T20 ─┼──→ T23
 **Tools**: MCP: NONE · Skill: NONE
 
 **Done when**:
-- [ ] 3 estimadores construídos com `random_state=42` e hiperparâmetros do design
-- [ ] `metrics` devolve `mad`, `mse`, `rmse`, `mape`, `mpe` conferidos analiticamente (erro constante `+2` ⇒ `mad=2`, `mse=4`, `rmse=2`)
-- [ ] `mpe` mantém o sinal (viés): superestimação ⇒ `mpe < 0`
-- [ ] Com `y_t = 0` no vetor, MAPE/MPE ignoram esses instantes, `n_zeros` é preenchido e `smape` é adicionada
-- [ ] `cross_validate_temporal` devolve as 5 métricas por fold (3 folds)
-- [ ] `recursive_backtest` não usa valor real de 2024 como `lag_1` (teste prova ausência de vazamento)
-- [ ] `metrics_table` gera uma linha por (produto, modelo) com as 5 métricas e a coluna `vencedor`
-- [ ] `select_best` aplica menor MAPE e desempate por MAD dentro de 0,5 p.p.
-- [ ] Determinismo: duas execuções ⇒ métricas idênticas até `1e-10`
-- [ ] Série sintética linear+sazonal ⇒ MAPE do Ridge < 5%
-- [ ] 9 ACs da história "Comparação de modelos" com 1 teste cada
-- [ ] Gate quick passa
+- [x] 3 estimadores construídos com `random_state=42` e hiperparâmetros do design
+- [x] `metrics` devolve `mad`, `mse`, `rmse`, `mape`, `mpe` conferidos analiticamente (erro constante `+2` ⇒ `mad=2`, `mse=4`, `rmse=2`)
+- [x] `mpe` mantém o sinal (viés): superestimação ⇒ `mpe < 0`
+- [x] Com `y_t = 0` no vetor, MAPE/MPE ignoram esses instantes, `n_zeros` é preenchido e `smape` é adicionada
+- [x] `cross_validate_temporal` devolve as 5 métricas por fold (3 folds)
+- [x] `recursive_backtest` não usa valor real de 2024 como `lag_1` (teste prova ausência de vazamento)
+- [x] `metrics_table` gera uma linha por (produto, modelo) com as 5 métricas e a coluna `vencedor`
+- [x] `select_best` aplica menor MAPE e desempate por MAD dentro de 0,5 p.p.
+- [x] Determinismo: duas execuções ⇒ métricas idênticas até `1e-10`
+- [x] Série sintética linear+sazonal ⇒ MAPE do Ridge < 5%
+- [x] 9 ACs da história "Comparação de modelos" com 1 teste cada
+- [x] Gate quick passa
 
 **Tests**: unit · **Gate**: quick
 
@@ -372,16 +371,16 @@ T18 ────┼→ T20 ─┼──→ T23
 **Tools**: MCP: NONE · Skill: NONE
 
 **Done when**:
-- [ ] `linear_regression_normal_equation` resolve `(XᵀX)β = Xᵀy` com `np.linalg.solve` (nunca `np.linalg.inv`)
-- [ ] Reta perfeita `y = 3x + 5` ⇒ coeficientes `[5, 3]` (tol. `1e-9`) e `R² = 1`
-- [ ] `linear_regression_sums` devolve os mesmos coeficientes da equação normal (tol. `1e-9`)
-- [ ] `exponential_regression_loglinear` sobre `y = 2e^{0,3x}` ⇒ `a ≈ 2`, `b ≈ 0,3` (tol. `1e-6`)
-- [ ] `exponential_regression_normal_equation` coincide com a versão linearizada (tol. `1e-9`)
-- [ ] `y_t ≤ 0` ⇒ `applicable=False`, `note="not_applicable"`, `WARNING`, sem exceção
-- [ ] `RegressionFit.equation` devolve mathtext (`$y = a e^{bx}$` / `$y = \beta_0 + \beta_1 x$`) com 4 algarismos significativos
-- [ ] `as_estimator` expõe `fit`/`predict` compatível com o avaliador de `models.py`
-- [ ] 8 ACs da história "Regressão linear e exponencial" com 1 teste cada
-- [ ] Gate quick passa
+- [x] `linear_regression_normal_equation` resolve `(XᵀX)β = Xᵀy` com `np.linalg.solve` (nunca `np.linalg.inv`)
+- [x] Reta perfeita `y = 3x + 5` ⇒ coeficientes `[5, 3]` (tol. `1e-9`) e `R² = 1`
+- [x] `linear_regression_sums` devolve os mesmos coeficientes da equação normal (tol. `1e-9`)
+- [x] `exponential_regression_loglinear` sobre `y = 2e^{0,3x}` ⇒ `a ≈ 2`, `b ≈ 0,3` (tol. `1e-6`)
+- [x] `exponential_regression_normal_equation` coincide com a versão linearizada (tol. `1e-9`)
+- [x] `y_t ≤ 0` ⇒ `applicable=False`, `note="not_applicable"`, `WARNING`, sem exceção
+- [x] `RegressionFit.equation` devolve mathtext (`$y = a e^{bx}$` / `$y = \beta_0 + \beta_1 x$`) com 4 algarismos significativos
+- [x] `as_estimator` expõe `fit`/`predict` compatível com o avaliador de `models.py`
+- [x] 8 ACs da história "Regressão linear e exponencial" com 1 teste cada
+- [x] Gate quick passa
 
 **Tests**: unit · **Gate**: quick
 
@@ -397,13 +396,13 @@ T18 ────┼→ T20 ─┼──→ T23
 **Tools**: MCP: NONE · Skill: NONE
 
 **Done when**:
-- [ ] `build_regime_labels` marca `1` só nos meses do cluster `alta`
-- [ ] `fit_regime_classifier` usa `LogisticRegression(random_state=42)` com treino 2022–2023 e avaliação em 2024
-- [ ] `evaluate_classifier` devolve `accuracy`, `precision`, `recall`, `f1` e matriz `[[vn, fp], [fn, vp]]` conferidos em dados separáveis (acurácia 1,0, matriz diagonal)
-- [ ] Classe única no treino ou teste ⇒ `skipped=True`, `reason="single_class"`, `WARNING`, sem exceção
-- [ ] Métricas de classificação ficam em tabela própria (`regime_classification.csv`), nunca no comparativo de erro de previsão
-- [ ] 6 ACs da história "Regressão logística" com 1 teste cada
-- [ ] Gate quick passa
+- [x] `build_regime_labels` marca `1` só nos meses do cluster `alta`
+- [x] `fit_regime_classifier` usa `LogisticRegression(random_state=42)` com treino 2022–2023 e avaliação em 2024
+- [x] `evaluate_classifier` devolve `accuracy`, `precision`, `recall`, `f1` e matriz `[[vn, fp], [fn, vp]]` conferidos em dados separáveis (acurácia 1,0, matriz diagonal)
+- [x] Classe única no treino ou teste ⇒ `skipped=True`, `reason="single_class"`, `WARNING`, sem exceção
+- [x] Métricas de classificação ficam em tabela própria (`regime_classification.csv`), nunca no comparativo de erro de previsão
+- [x] 6 ACs da história "Regressão logística" com 1 teste cada
+- [x] Gate quick passa
 
 **Tests**: unit · **Gate**: quick
 
@@ -419,14 +418,14 @@ T18 ────┼→ T20 ─┼──→ T23
 **Tools**: MCP: NONE · Skill: NONE
 
 **Done when**:
-- [ ] `12 × horizon_years` valores mensais por produto a partir de 2025-01, com o modelo vencedor reajustado em todo o histórico
-- [ ] `validate_horizon_years` aceita `{1,2,3}` e levanta `InputError` fora disso
-- [ ] Nenhum mês ≤ 2024-12 aparece na previsão (teste garante que histórico não é reprevisto)
-- [ ] `lag_1` = previsão anterior; `lag_12` = real enquanto disponível, depois previsão, com `WARNING` a partir do 13º passo
-- [ ] Previsão negativa truncada em 0 com `WARNING` citando produto e mês
-- [ ] `forecast_monthly.csv` e `forecast_annual.csv` com o esquema do design (total anual inteiro por produto e ano, com `mape_holdout` e `mad_holdout`)
-- [ ] 7 ACs da história "Previsão dos próximos anos" com 1 teste cada
-- [ ] Gate quick passa
+- [x] `12 × horizon_years` valores mensais por produto a partir de 2025-01, com o modelo vencedor reajustado em todo o histórico
+- [x] `validate_horizon_years` aceita `{1, 2, 3}` e levanta `InputError` fora disso
+- [x] Nenhum mês ≤ 2024-12 aparece na previsão (teste garante que histórico não é reprevisto)
+- [x] `lag_1` = previsão anterior; `lag_12` = real enquanto disponível, depois previsão, com `WARNING` a partir do 13º passo
+- [x] Previsão negativa truncada em 0 com `WARNING` citando produto e mês
+- [x] `forecast_monthly.csv` e `forecast_annual.csv` com o esquema do design (total anual inteiro por produto e ano, com `mape_holdout` e `mad_holdout`)
+- [x] 7 ACs da história "Previsão dos próximos anos" com 1 teste cada
+- [x] Gate quick passa
 
 **Tests**: unit · **Gate**: quick
 
@@ -442,12 +441,12 @@ T18 ────┼→ T20 ─┼──→ T23
 **Tools**: MCP: NONE · Skill: NONE
 
 **Done when**:
-- [ ] `capacity_frame` reproduz 12.000 → 15.600 (delta 3.600), geleias 3.000, doces 5.000 e total pré-expansão 20.000 caixas/mês
-- [ ] Sem `--units-per-case`, `demand_in_cases` devolve `None` (escalas não se misturam)
-- [ ] Com `N=12`, converte unidades→caixas com arredondamento para cima
-- [ ] `N <= 0` levanta `InputError`
-- [ ] 5 ACs da história "Capacidade" com 1 teste cada
-- [ ] Gate quick passa
+- [x] `capacity_frame` reproduz 12.000 → 15.600 (delta 3.600), geleias 3.000, doces 5.000 e total pré-expansão 20.000 caixas/mês
+- [x] Sem `--units-per-case`, `demand_in_cases` devolve `None` (escalas não se misturam)
+- [x] Com `N=12`, converte unidades→caixas com arredondamento para cima
+- [x] `N <= 0` levanta `InputError`
+- [x] 5 ACs da história "Capacidade" com 1 teste cada
+- [x] Gate quick passa
 
 **Tests**: unit · **Gate**: quick
 
@@ -463,14 +462,14 @@ T18 ────┼→ T20 ─┼──→ T23
 **Tools**: MCP: NONE · Skill: NONE
 
 **Done when**:
-- [ ] Uma figura de pontos por produto + 1 combinada; `NaN` não gera marcador
-- [ ] Rótulos usam os nomes do documento (`Suco Premium`, `Geleia de frutas`, `Doce de frutas`)
-- [ ] `fig_interpolation` contém pontos + curva linear + curva polinomial + `Text` idêntico a `polynomial_equation_label(...)`
-- [ ] Rodapé declara `x = 0` em 2022-01 e traz a forma genérica do ajuste (`FORMULAS["poly_fit"]`)
-- [ ] Legenda cita o grau escolhido e a origem (`auto` ou `--poly-degree`)
-- [ ] `fig_moving_average` sobrepõe MA(3) e MA(12) às observações
-- [ ] Testes verificam conteúdo dos artistas (número de linhas, texto da equação), não pixels
-- [ ] Gate quick passa
+- [x] Uma figura de pontos por produto + 1 combinada; `NaN` não gera marcador
+- [x] Rótulos usam os nomes do documento (`Suco Premium`, `Geleia de frutas`, `Doce de frutas`)
+- [x] `fig_interpolation` contém pontos + curva linear + curva polinomial + `Text` idêntico a `polynomial_equation_label(...)`
+- [x] Rodapé declara `x = 0` em 2022-01 e traz a forma genérica do ajuste (`FORMULAS["poly_fit"]`)
+- [x] Legenda cita o grau escolhido e a origem (`auto` ou `--poly-degree`)
+- [x] `fig_moving_average` sobrepõe MA(3) e MA(12) às observações
+- [x] Testes verificam conteúdo dos artistas (número de linhas, texto da equação), não pixels
+- [x] Gate quick passa
 
 **Tests**: unit · **Gate**: quick
 
@@ -486,17 +485,17 @@ T18 ────┼→ T20 ─┼──→ T23
 **Tools**: MCP: NONE · Skill: NONE
 
 **Done when**:
-- [ ] Perfis sazonais coloridos por regime com silhouette e `k` no título
-- [ ] 9 séries produto-ano coloridas por cluster
-- [ ] Backtest: real 2024 × previsto por modelo, uma figura por produto
-- [ ] Barras de MAPE por modelo × produto, com o vencedor destacado
-- [ ] `fig_error_table` renderiza a tabela MAD/MSE/RMSE/MAPE/MPE por (produto, modelo), vencedor destacado, com `metric_footnote` no rodapé
-- [ ] Valores da figura-tabela idênticos aos de `error_metrics.csv` (teste compara célula a célula)
-- [ ] `fig_regression` mostra pontos + reta (equação normal) + curva exponencial, com as **duas equações e R² anotados** na imagem
-- [ ] `fig_confusion_matrix` desenha a matriz 2×2 com contagens absolutas e rodapé com as fórmulas de acurácia, precisão, recall e F1
-- [ ] Série com `not_applicable` (exponencial) ⇒ figura gerada só com a reta, com nota explícita
-- [ ] Etapa pulada (cluster ausente) não quebra a geração das demais figuras
-- [ ] Gate quick passa
+- [x] Perfis sazonais coloridos por regime com silhouette e `k` no título
+- [x] 9 séries produto-ano coloridas por cluster
+- [x] Backtest: real 2024 × previsto por modelo, uma figura por produto
+- [x] Barras de MAPE por modelo × produto, com o vencedor destacado
+- [x] `fig_error_table` renderiza a tabela MAD/MSE/RMSE/MAPE/MPE por (produto, modelo), vencedor destacado, com `metric_footnote` no rodapé
+- [x] Valores da figura-tabela idênticos aos de `error_metrics.csv` (teste compara célula a célula)
+- [x] `fig_regression` mostra pontos + reta (equação normal) + curva exponencial, com as **duas equações e R² anotados** na imagem
+- [x] `fig_confusion_matrix` desenha a matriz 2×2 com contagens absolutas e rodapé com as fórmulas de acurácia, precisão, recall e F1
+- [x] Série com `not_applicable` (exponencial) ⇒ figura gerada só com a reta, com nota explícita
+- [x] Etapa pulada (cluster ausente) não quebra a geração das demais figuras
+- [x] Gate quick passa
 
 **Tests**: unit · **Gate**: quick
 
@@ -512,12 +511,12 @@ T18 ────┼→ T20 ─┼──→ T23
 **Tools**: MCP: NONE · Skill: NONE
 
 **Done when**:
-- [ ] Histórico 2022–2024 + previsão futura em estilo distinto, por produto e combinada
-- [ ] Título/legenda citam o modelo vencedor, o MAPE e o MAD de holdout
-- [ ] `fig_capacity` mostra caixas/mês antes e depois com anotação do delta de 3.600
-- [ ] Sem `--units-per-case`, unidades e caixas ficam em figuras separadas
-- [ ] Catálogo completo (28 figuras) coberto pelas funções de T14–T16
-- [ ] Gate quick passa
+- [x] Histórico 2022–2024 + previsão futura em estilo distinto, por produto e combinada
+- [x] Título/legenda citam o modelo vencedor, o MAPE e o MAD de holdout
+- [x] `fig_capacity` mostra caixas/mês antes e depois com anotação do delta de 3.600
+- [x] Sem `--units-per-case`, unidades e caixas ficam em figuras separadas
+- [x] Catálogo completo (32 figuras, incluindo barras 2025-only por produto e total) coberto pelas funções de T14–T16
+- [x] Gate quick passa
 
 **Tests**: unit · **Gate**: quick
 
@@ -533,12 +532,12 @@ T18 ────┼→ T20 ─┼──→ T23
 **Tools**: MCP: NONE · Skill: NONE
 
 **Done when**:
-- [ ] Ordem canônica `load → interp → ma → cluster → features → ml → forecast → capacity → plots`
-- [ ] `resolve_steps` inclui dependências ausentes e registra `INFO`
-- [ ] Execução completa no dataset de exemplo grava 28 figuras × formatos + 13 tabelas + `index.csv`
-- [ ] Reexecução sobrescreve arquivos homônimos sem apagar arquivos alheios
-- [ ] `PipelineResult` expõe figuras, tabelas, previsão anual e avisos
-- [ ] Gate full passa: `uv run pytest -q`
+- [x] Ordem canônica `load → interp → ma → cluster → features → ml → forecast → capacity → plots`
+- [x] `resolve_steps` inclui dependências ausentes e registra `INFO`
+- [x] Execução completa no dataset de exemplo grava 32 figuras × formatos + 13 tabelas + `index.csv`
+- [x] Reexecução sobrescreve arquivos homônimos sem apagar arquivos alheios
+- [x] `PipelineResult` expõe figuras, tabelas, previsão anual e avisos
+- [x] Gate full passa: `uv run pytest -q`
 
 **Tests**: integration · **Gate**: full
 
@@ -554,13 +553,13 @@ T18 ────┼→ T20 ─┼──→ T23
 **Tools**: MCP: NONE · Skill: NONE
 
 **Done when**:
-- [ ] `--help` lista as 11 flags do spec (incluindo `--horizon-years` e `--poly-degree` opcional)
-- [ ] Sem flags usa `data/raw/demanda_loja_propria.csv` e `reports/`; exit `0` no caminho feliz
-- [ ] `--steps plots,interp` restringe artefatos gerados
-- [ ] `InputError` ⇒ exit `2`; erro inesperado ⇒ exit `1` com stack trace só em `--log-level debug`
-- [ ] Resumo final imprime nº de figuras, nº de tabelas e total anual previsto por linha
-- [ ] 6 ACs da história "Script CLI" com 1 teste cada
-- [ ] Gate full passa
+- [x] `--help` lista as 11 flags do spec (incluindo `--horizon-years` e `--poly-degree` opcional)
+- [x] Sem flags usa `data/raw/demanda_loja_propria.csv` e `reports/`; exit `0` no caminho feliz
+- [x] `--steps plots,interp` restringe artefatos gerados
+- [x] `InputError` ⇒ exit `2`; erro inesperado ⇒ exit `1` com stack trace só em `--log-level debug`
+- [x] Resumo final imprime nº de figuras, nº de tabelas e total anual previsto por linha
+- [x] 6 ACs da história "Script CLI" com 1 teste cada
+- [x] Gate full passa
 
 **Tests**: integration · **Gate**: full
 
@@ -576,12 +575,12 @@ T18 ────┼→ T20 ─┼──→ T23
 **Tools**: MCP: NONE · Skill: NONE
 
 **Done when**:
-- [ ] Seções na ordem: dados → pontos → interpolações (com equação) → média móvel → clusters → comparação de modelos (tabela das 5 métricas) → backtest 2024 → previsão dos próximos anos + tabela anual
-- [ ] Cada seção precedida por célula markdown com a fórmula em LaTeX (`bebibem.formulas.FORMULAS`) e o glossário de símbolos
-- [ ] Nenhuma função de cálculo definida em célula (só chamadas a `bebibem.*`)
-- [ ] Commitado sem outputs (`execution_count: null`, `outputs: []`)
-- [ ] `uv run pytest --nbmake notebooks/01_analise_demanda_bebibem.ipynb` passa com o CSV de exemplo
-- [ ] Gate full passa
+- [x] Seções na ordem: dados → pontos → interpolações (com equação) → média móvel → clusters → comparação de modelos (tabela das 5 métricas) → backtest 2024 → previsão dos próximos anos + tabela anual
+- [x] Cada seção precedida por célula markdown com a fórmula em LaTeX (`bebibem.formulas.FORMULAS`) e o glossário de símbolos
+- [x] Nenhuma função de cálculo definida em célula (só chamadas a `bebibem.*`)
+- [x] Commitado sem outputs (`execution_count: null`, `outputs: []`)
+- [x] `uv run pytest --nbmake notebooks/01_analise_demanda_bebibem.ipynb` passa com o CSV de exemplo
+- [x] Gate full passa
 
 **Tests**: integration (nbmake) · **Gate**: full
 
@@ -597,13 +596,13 @@ T18 ────┼→ T20 ─┼──→ T23
 **Tools**: MCP: NONE · Skill: NONE
 
 **Done when**:
-- [ ] `docker build -f docker/pipeline.Dockerfile -t bebibem-pipeline .` conclui
-- [ ] `docker run --rm -v $PWD/data:/app/data:ro -v $PWD/reports:/app/reports bebibem-pipeline` gera artefatos no host e sai `0`
-- [ ] Argumentos extras chegam ao CLI via `ENTRYPOINT`
-- [ ] `docker run --rm bebibem-pipeline --input /inexistente.csv` sai `2`
-- [ ] Imagem sem `jupyterlab`, `pytest`, `ruff`; processo como uid 10001; `MPLBACKEND=Agg`
-- [ ] `.dockerignore` exclui `.venv/`, `reports/`, `.git/`, `__pycache__/`, `.specs/`, `notebooks/`, `docs/`
-- [ ] Gate container passa
+- [x] `docker build -f docker/pipeline.Dockerfile -t bebibem-pipeline .` conclui
+- [x] `docker run --rm -v $PWD/data:/app/data:ro -v $PWD/reports:/app/reports bebibem-pipeline` gera artefatos no host e sai `0`
+- [x] Argumentos extras chegam ao CLI via `ENTRYPOINT`
+- [x] `docker run --rm bebibem-pipeline --input /inexistente.csv` sai `2`
+- [x] Imagem sem `jupyterlab`, `pytest`, `ruff`; processo como uid 10001; `MPLBACKEND=Agg`
+- [x] `.dockerignore` exclui `.venv/`, `reports/`, `.git/`, `__pycache__/`, `.specs/`, `notebooks/`, `docs/`
+- [x] Gate container passa
 
 **Tests**: smoke (docker) · **Gate**: container
 
@@ -619,13 +618,13 @@ T18 ────┼→ T20 ─┼──→ T23
 **Tools**: MCP: NONE · Skill: NONE
 
 **Done when**:
-- [ ] `docker build -f docker/jupyter.Dockerfile -t bebibem-jupyter .` conclui com extra `notebook` e sem `pytest`/`ruff`
-- [ ] `docker run -p 8888:8888 …` responde em `http://localhost:8888` com o notebook listado
-- [ ] `JUPYTER_TOKEN` respeitado; sem a variável, token aleatório aparece no log (nunca aberto)
-- [ ] Processo como uid 10001, sem `--allow-root`
-- [ ] `HEALTHCHECK` reporta `healthy` em até 30 s
-- [ ] Notebook executa dentro do container e grava em `/app/reports` (visível no host)
-- [ ] Gate container passa
+- [x] `docker build -f docker/jupyter.Dockerfile -t bebibem-jupyter .` conclui com extra `notebook` e sem `pytest`/`ruff`
+- [x] `docker run -p 8888:8888 …` responde em `http://localhost:8888` com o notebook listado
+- [x] `JUPYTER_TOKEN` respeitado; sem a variável, token aleatório aparece no log (nunca aberto)
+- [x] Processo como uid 10001, sem `--allow-root`
+- [x] `HEALTHCHECK` reporta `healthy` em até 30 s
+- [x] Notebook executa dentro do container e grava em `/app/reports` (visível no host)
+- [x] Gate container passa
 
 **Tests**: smoke (docker) · **Gate**: container
 
@@ -641,11 +640,11 @@ T18 ────┼→ T20 ─┼──→ T23
 **Tools**: MCP: NONE · Skill: NONE
 
 **Done when**:
-- [ ] Seções: pré-requisitos, `uv sync`, execução do pipeline, notebook, Docker (duas imagens), contrato do CSV (wide igual ao documento e long), catálogo de figuras e tabelas
+- [x] Seções: pré-requisitos, `uv sync`, execução do pipeline, notebook, Docker (duas imagens), contrato do CSV (wide igual ao documento e long), catálogo de figuras e tabelas
 - [x] Fórmulas de MAD, MSE, RMSE, MAPE e MPE em LaTeX, com link para o formulário completo do `design.md` — **já entregue**: `README.md` criado com o formulário completo (notação, interpolações, médias móveis, índice sazonal, KMeans/silhouette, Ridge, previsão recursiva, 5 métricas + sMAPE). Resta apenas revisar após a implementação.
-- [ ] Todos os comandos citados existem em `pyproject.toml`/`docker/`
-- [ ] Resposta da questão 5 explicada (onde ler o total anual previsto e o erro de holdout associado)
-- [ ] Gate build passa
+- [x] Todos os comandos citados existem em `pyproject.toml`/`docker/`
+- [x] Resposta da questão 5 explicada (onde ler o total anual previsto e o erro de holdout associado)
+- [x] Gate build passa
 
 **Tests**: none · **Gate**: build
 
@@ -661,14 +660,14 @@ T18 ────┼→ T20 ─┼──→ T23
 **Tools**: MCP: NONE · Skill: NONE
 
 **Done when**:
-- [ ] `uv run bebibem-forecast` termina em `0` com o CSV real
-- [ ] 28 figuras × 3 formatos presentes e não vazias; `index.csv` consistente
-- [ ] `forecast_annual.csv` com 3 linhas (horizonte 1 ano), inteiros positivos, MAPE e MAD de holdout
-- [ ] `error_metrics.csv` e a figura-tabela `17_tabela_erros` comparam os **6 modelos** (3 de ML + 3 de regressão clássica) nas 5 métricas, com o vencedor destacado
-- [ ] `regression_fit.csv` traz as equações ajustadas e `regime_classification.csv` traz as métricas de classificação
-- [ ] Segunda execução ⇒ hashes SVG/PDF idênticos e métricas idênticas
-- [ ] `docker run` do pipeline reproduz os mesmos totais anuais
-- [ ] Gate build passa (`ruff` + testes + cobertura ≥ 85%)
+- [x] `uv run bebibem-forecast` termina em `0` com o CSV real
+- [x] 32 figuras × 3 formatos presentes e não vazias; `index.csv` consistente
+- [x] `forecast_annual.csv` com 3 linhas (horizonte 1 ano), inteiros positivos, MAPE e MAD de holdout
+- [x] `error_metrics.csv` e a figura-tabela `17_tabela_erros` comparam os **6 modelos** (3 de ML + 3 de regressão clássica) nas 5 métricas, com o vencedor destacado
+- [x] `regression_fit.csv` traz as equações ajustadas e `regime_classification.csv` traz as métricas de classificação
+- [x] Segunda execução ⇒ hashes SVG/PDF idênticos e métricas idênticas
+- [x] `docker run` do pipeline reproduz os mesmos totais anuais
+- [x] Gate build passa (`ruff` + testes + cobertura ≥ 85%)
 
 **Tests**: integration · **Gate**: build
 
@@ -755,9 +754,9 @@ T18 ────┼→ T20 ─┼──→ T23
 
 ---
 
-## Pendências antes do Execute
+## Execute completion
 
-1. Confirmar Test Coverage Matrix / Parallelism / Gate commands (repositório novo — defaults fortes aplicados).
-2. Confirmar MCPs e skills por task (proposta atual: nenhum MCP; sem skills auxiliares).
-3. Entregar `data/raw/demanda_loja_propria.csv` (bloqueia apenas T23).
-4. Aceitar (ou recusar) a oferta de sub-agentes: 6 fases ⇒ 1 worker por fase + Verifier final automático.
+- 6 phases complete.
+- `103` tests pass with `90.23%` coverage.
+- Notebook, both Docker images, Docker pipeline runtime, Jupyter `/lab` smoke test, and two clean real-CSV runs verified.
+- Remaining warnings are non-blocking fixture convergence warnings and a notebook cell-ID warning.

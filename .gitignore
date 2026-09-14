@@ -2,6 +2,14 @@
 __pycache__/
 reports/figures/
 reports/tables/
+reports/notebook-example/
 *.ipynb_checkpoints/
 .pytest_cache/
 .ruff_cache/
+.idea/
+
+# Graphify Outputs
+graphify-out/cache/
+.graphify_*.json
+.graphify_python
+.graphify_root

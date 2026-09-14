@@ -2,7 +2,7 @@
 
 Projeto Python (uv + `pyproject.toml`) que analisa o histórico mensal de demanda das três linhas da loja própria BebiBem (Suco Premium, Geleia de frutas, Doce de frutas — 2022 a 2024) e produz plots, interpolações, médias móveis, clusterização, comparação de modelos de machine learning e previsão dos próximos anos.
 
-> **Status:** planejamento aprovado, implementação pendente. Especificação completa em `.specs/features/previsao-demanda-bebibem/` (`spec.md`, `context.md`, `design.md`, `tasks.md`) e decisões de projeto em `.specs/STATE.md`.
+> **Status:** implementação concluída para análise, previsão, CLI, notebook e imagens Docker. A especificação completa está em `.specs/features/previsao-demanda-bebibem/` (`spec.md`, `context.md`, `design.md`, `tasks.md`) e as decisões de projeto estão em `.specs/STATE.md`.
 
 - Fonte de negócio: `docs/Case BebiBem - MBM - Acting 2026.pdf` (questão 5, p. 3–4).
 - Stack: `numpy`, `pandas`, `scikit-learn`, `matplotlib`.
@@ -27,7 +27,18 @@ Projeto Python (uv + `pyproject.toml`) que analisa o histórico mensal de demand
   - [Previsão recursiva](#previsão-recursiva)
   - [Métricas de erro](#métricas-de-erro)
   - [Comparativo de modelos](#comparativo-de-modelos)
-- [Como será executado](#como-será-executado)
+  - [Modelos de séries temporais (ciclos periódicos)](#modelos-de-séries-temporais-ciclos-periódicos)
+    - [Resumo de escolha](#resumo-de-escolha)
+    - [Suavização exponencial Holt-Winters Multiplicativo](#suavização-exponencial-holt-winters-multiplicativo)
+    - [SARIMA](#sarima-sazonal-autorregressivo-integrado-de-médias-móveis)
+    - [Fourier (Regressão Harmônica)](#fourier-regressão-harmônica)
+    - [Comparativo de erros das séries temporais](#comparativo-de-erros-das-séries-temporais-holdout-2024)
+- [Abordagem de treinamento e seleção de modelos](#abordagem-de-treinamento-e-seleção-de-modelos)
+  - [Candidatos avaliados](#candidatos-avaliados)
+  - [Critério de seleção](#critério-de-seleção)
+  - [Resultados e previsão 2025](#resultados-e-previsão-2025)
+  - [Limitações](#limitações)
+- [Como executar](#como-executar)
 - [Contrato do CSV de entrada](#contrato-do-csv-de-entrada)
 - [Artefatos gerados](#artefatos-gerados)
 
@@ -46,6 +57,13 @@ Projeto Python (uv + `pyproject.toml`) que analisa o histórico mensal de demand
 | $k$ | número de clusters |
 | $x$ | índice do mês desde o início da série ($x = 0$ em 2022-01) |
 | $T_0$ | $\{t : y_t \neq 0\}$ — instantes usados nas métricas percentuais |
+| $m$ | período do ciclo sazonal ($m = 12$ meses) |
+| $K$ | número de harmônicos da série de Fourier |
+| $\alpha, \beta, \gamma$ | parâmetros de suavização do Holt-Winters (nível, tendência, sazonalidade) |
+| $\ell_t, b_t, s_t$ | componentes de nível, tendência e fator sazonal no instante $t$ |
+| $B$ | operador de retardo (*backshift*): $B^k y_t = y_{t-k}$ |
+| $\phi_p, \Phi_P$ | polinômios autorregressivos (não-sazonal e sazonal) do SARIMA |
+| $\theta_q, \Theta_Q$ | polinômios de médias móveis (não-sazonal e sazonal) do SARIMA |
 
 ---
 
@@ -213,32 +231,196 @@ Critério de escolha: menor MAPE de holdout; empates dentro de 0,5 p.p. desempat
 
 A classificação logística tem tabela e figura próprias (`regime_classification.csv`, `21_confusao_<produto>`) — métricas de classificação nunca entram no comparativo de erro de previsão.
 
+### Modelos de séries temporais (ciclos periódicos)
+
+Para capturar a forte oscilação periódica anual (picos em janeiro/fevereiro e vales no meio do ano) observada nas curvas de demanda, foram incorporadas três formulações clássicas de séries temporais:
+
+#### Resumo de escolha
+
+| Método | Adequação a N=37 | Captura ciclo anual | Trata amplitude variável | Risco de overfitting |
+|---|---|---|---|---|
+| **Holt-Winters Multiplicativo** | Alta | Sim ($m=12$) | Sim | Baixo |
+| **SARIMA** | Baixa | Sim | Com $\log(y)$ | Alto (perde 12 pts) |
+| **Fourier (Regressão Harmônica)** | Alta | Sim ($P=12$) | Não (amplitude fixa) | Muito baixo |
+
+#### Suavização exponencial Holt-Winters Multiplicativo
+
+Modela o nível local $\ell_t$, a taxa de crescimento $b_t$ e as flutuações sazonais multiplicativas $s_t$, sendo ideal para séries em que a amplitude das oscilações é proporcional ao nível médio da demanda (exige $y_t > 0$):
+
+$$\hat{y}_{t+h} = (\ell_t + h b_t)\, s_{t+h-m(k+1)}$$
+
+onde $m = 12$ e $k = \lfloor (h-1)/m \rfloor$. As equações de transição de estado são:
+
+$$\ell_t = \alpha\,\frac{y_t}{s_{t-m}} + (1-\alpha)(\ell_{t-1} + b_{t-1})$$
+
+$$b_t = \beta\,(\ell_t - \ell_{t-1}) + (1-\beta)\,b_{t-1}$$
+
+$$s_t = \gamma\,\frac{y_t}{\ell_t} + (1-\gamma)\,s_{t-m}$$
+
+Os parâmetros de suavização $\alpha, \beta, \gamma \in [0, 1]$ são estimados por máxima verossimilhança minimizando a soma dos erros quadráticos de previsão um passo à frente (SSE).
+
+#### SARIMA (Sazonal Autorregressivo Integrado de Médias Móveis)
+
+Modela dependências estocásticas temporais e sazonais via operadores de retardo $B$ ($B^k y_t = y_{t-k}$):
+
+$$\Phi_P(B^s)\,\phi_p(B)\,(1-B)^d\,(1-B^s)^D y_t = c + \Theta_Q(B^s)\,\theta_q(B)\,\varepsilon_t$$
+
+Para séries curtas ($N=36$, 24 no treino), adota-se a especificação parsimoniosa $\mathrm{SARIMA}(1,0,0)\times(1,0,0)_{12}$:
+
+$$(1 - \phi_1 B)(1 - \Phi_1 B^{12}) y_t = c + \varepsilon_t$$
+
+$$\Longleftrightarrow\quad y_t = c + \phi_1 y_{t-1} + \Phi_1 y_{t-12} - \phi_1 \Phi_1 y_{t-13} + \varepsilon_t$$
+
+> **Diagnóstico de risco amostral:** a diferenciação sazonal ($D=1$) descartaria os primeiros 12 meses da amostra, deixando apenas 12 observações para o treino. Isso causa instabilidade numérica e divergência no estimador MLE em dados sintéticos ou restritos.
+
+#### Fourier (Regressão Harmônica)
+
+Aproximação determinística do ciclo periódico com tendência linear e $K$ pares de harmônicos ortogonais:
+
+$$y(t) = a_0 + b\,t + \sum_{k=1}^{K}\left[ a_k \cos\!\left(\frac{2\pi k\,t}{P}\right) + b_k \sin\!\left(\frac{2\pi k\,t}{P}\right) \right] + \varepsilon_t$$
+
+com $P = 12$ meses e $K = 2$ harmônicos. A estimação é realizada por Mínimos Quadrados Ordinários (equação normal):
+
+$$\mathbf{\hat{\beta}} = \left(X^{\top}X\right)^{-1} X^{\top}\mathbf{y}, \qquad X_t = \left[\,1,\ t,\ \cos\!\left(\frac{2\pi t}{12}\right),\ \sin\!\left(\frac{2\pi t}{12}\right),\ \cos\!\left(\frac{4\pi t}{12}\right),\ \sin\!\left(\frac{4\pi t}{12}\right)\,\right]$$
+
+#### Comparativo de erros das séries temporais (Holdout 2024)
+
+Avaliação idêntica ao backtest dos demais modelos (treino 2022–2023, avaliação nos 12 meses de 2024):
+
+| Produto | Método | MAD | MSE | RMSE | MAPE (%) | MPE (%) | Vencedor |
+|---|---|---|---|---|---|---|---|
+| **Doce de frutas** | **Holt-Winters Multiplicativo** | **6,10** | **75,7** | **8,70** | **15,53%** | **-2,99%** | **Sim** |
+| Doce de frutas | SARIMA $(1,0,0)(1,0,0)_{12}$ | 11,76 | 175,0 | 13,23 | 37,61% | -22,60% | Não |
+| Doce de frutas | Fourier (Harmônica $K=2$) | 12,86 | 299,9 | 17,32 | 46,04% | -23,08% | Não |
+| **Geleia de frutas** | **Holt-Winters Multiplicativo** | **3,56** | **24,7** | **4,97** | **27,51%** | **-24,78%** | **Sim** |
+| Geleia de frutas | SARIMA $(1,0,0)(1,0,0)_{12}$ | 5,01 | 48,5 | 6,97 | 35,36% | -30,12% | Não |
+| Geleia de frutas | Fourier (Harmônica $K=2$) | 5,57 | 41,8 | 6,47 | 50,84% | -39,83% | Não |
+| **Suco Premium** | **Holt-Winters Multiplicativo** | **6,29** | **49,3** | **7,02** | **11,16%** | **-9,01%** | **Sim** |
+| Suco Premium | SARIMA $(1,0,0)(1,0,0)_{12}$ | 8,28 | 85,9 | 9,27 | 16,90% | -16,90% | Não |
+| Suco Premium | Fourier (Harmônica $K=2$) | 17,26 | 457,6 | 21,39 | 34,97% | -26,23% | Não |
+
+**Principais conclusões do comparativo:**
+1. **Holt-Winters Multiplicativo superou todos os concorrentes de séries temporais** em todas as três linhas de produto, alcançando o menor MAPE e menor MAD. Em Doce de Frutas, reduziu o MAPE para 15,53% (contra 34,55% do Ridge, melhor modelo anterior). Em Suco Premium, alcançou 11,16% de MAPE com viés baixo (-9,01%).
+2. **SARIMA** obteve o segundo lugar em todas as linhas, mas foi limitado pela restrição de amostra (24 meses no treino), apresentando tendência a superestimar a demanda nos períodos de vale (MPE entre -16% e -30%).
+3. **Fourier (Harmônica)** capturou a ciclicidade de forma robusta e sem risco de divergência, porém foi prejudicado pela amplitude fixa dos termos senoidais, subestimando os picos mais recentes onde a demanda cresceu (efeito multiplicativo).
+
+#### Modificações no projeto e novos artefatos
+
+- Módulo dedicado: `src/bebibem/timeseries.py`.
+- Suporte CLI: `bebibem-forecast --timeseries` executa a modelagem e gera todos os plots.
+- Figuras geradas em PNG (300 dpi), SVG e PDF:
+  - `reports/figures/{png,svg,pdf}/series_temporais/comparativo_<produto>`: comparação direta das 3 abordagens contra os pontos observados no holdout 2024.
+  - `reports/figures/{png,svg,pdf}/series_temporais/metricas_mape`: gráfico de barras comparando MAPE e MAD entre os métodos e produtos.
+  - `reports/figures/{png,svg,pdf}/series_temporais/tabela_erros`: tabela renderizada em alta resolução com todas as 5 métricas de erro.
+  - `reports/figures/{png,svg,pdf}/series_temporais/previsao_todos`: projeção futura de 2025 para as três linhas com o modelo vencedor (Holt-Winters).
+  - `reports/figures/{png,svg,pdf}/{holt_winters_multiplicativo,sarima,fourier_harmonica}/backtest_<produto>`: backtests individuais por método.
+- Tabelas CSV em `reports/tables/`: `timeseries_error_metrics.csv`, `timeseries_forecast_monthly.csv`, `timeseries_forecast_annual.csv`.
+
 ---
 
-## Como será executado
+## Abordagem de treinamento e seleção de modelos
 
-Comandos previstos pela especificação (disponíveis após a implementação das tasks em `.specs/features/previsao-demanda-bebibem/tasks.md`):
+O objetivo, conforme a questão 5 do case, é prever a demanda de 2025 das três linhas da loja própria (Suco Premium, Geleia de frutas e Doce de frutas) a partir de 36 observações mensais (2022–2024). Por se tratar de uma série curta e com sazonalidade anual marcada, a validação adotou partição temporal, sem embaralhamento: treino em 2022–2023 e holdout nos 12 meses de 2024. Nos modelos de ML, a previsão do holdout é [recursiva](#previsão-recursiva) — cada mês usa a previsão do mês anterior como defasagem e nenhum valor real de 2024 entra como entrada —, reproduzindo as condições de uma previsão feita para o ano seguinte.
+
+### Candidatos avaliados
+
+Nove candidatos por linha, em dois grupos, todos com semente fixa (42) para reprodutibilidade:
+
+| Grupo | Modelos | Entradas |
+| --- | --- | --- |
+| ML/regressão clássica | Ridge, Random Forest, Gradient Boosting | `lag_1`, `lag_12`, indicadores de mês, tendência e regime sazonal do mês (KMeans sobre o índice sazonal, $k$ escolhido por silhouette) |
+| ML/regressão clássica | Linear (equação normal), exponencial linearizada, exponencial (equação normal) | somente a tendência $x$ |
+| Séries temporais | Holt-Winters (tendência aditiva, sazonalidade multiplicativa, $m=12$), $\mathrm{SARIMA}(1,0,0)\times(1,0,0)_{12}$ com constante, Fourier (tendência linear, $K=2$, $P=12$) | a própria série |
+
+### Critério de seleção
+
+Cada candidato é avaliado no holdout de 2024 pelas cinco [métricas de erro](#métricas-de-erro). A escolha segue `bebibem.models.select_best`:
+
+1. **menor MAPE** — erro relativo, independente de escala, lido pela gestão como "erro médio percentual";
+2. candidatos até 0,5 p.p. acima do menor MAPE são considerados empatados e desempatados pelo **menor MAD** (erro médio em unidades);
+3. persistindo o empate, menor MAPE e, por fim, ordem alfabética do nome do modelo.
+
+$$C = \{\,m : \mathrm{MAPE}_m \le \min_k \mathrm{MAPE}_k + 0{,}5\,\}, \qquad m^{*} = \arg\min_{m \in C} \mathrm{MAD}_m$$
+
+MSE, RMSE e MPE são reportados apenas como diagnóstico e não entram na decisão. A regra é aplicada uma única vez por linha sobre os nove candidatos juntos (`bebibem.models.select_overall_best`), e não dentro de cada grupo: isso impede publicar o vencedor de um grupo quando o outro tem modelo mais preciso — no Doce de frutas, o melhor modelo de ML (Ridge, MAPE 34,55%) era muito inferior ao Holt-Winters (15,53%). O comparativo completo está na figura `previsao/tabela_comparativa_modelos`, com a linha vencedora de cada produto destacada.
+
+### Resultados e previsão 2025
+
+| Linha | Modelo vencedor | Grupo | MAPE holdout 2024 | MAD holdout 2024 | Total previsto 2025 |
+| --- | --- | --- | --- | --- | --- |
+| Doce de frutas | Holt-Winters multiplicativo | Séries temporais | 15,53% | 6,10 | 523 unidades |
+| Geleia de frutas | Random Forest | ML/regressão clássica | 18,70% | 2,89 | 180 unidades |
+| Suco Premium | Gradient Boosting | ML/regressão clássica | 9,92% | 5,83 | 814 unidades |
+
+Em nenhuma linha houve candidato dentro de 0,5 p.p. do líder, então o desempate por MAD não foi acionado. Em Doce e Geleia, o vencedor é o mesmo nas cinco métricas (MPE pelo valor absoluto). Após a seleção, o vencedor projeta os 12 meses de 2025 a partir do histórico completo (2022–2024).
+
+> **Nota:** a seleção unificada é aplicada no notebook `notebooks/01_analise_demanda_bebibem.ipynb`, fonte da tabela acima. O CLI `bebibem-forecast` ainda escolhe o vencedor apenas entre os seis modelos de ML/regressão clássica (`select_best` sobre `error_metrics` em `src/bebibem/pipeline.py`); por isso o `forecast_annual.csv` gerado pelo CLI pode divergir desta tabela (ex.: Doce de frutas previsto com `ridge`).
+
+### Limitações
+
+- O holdout tem apenas 12 pontos por linha; diferenças pequenas de erro devem ser lidas com cautela.
+- Suco Premium é sensível à métrica: pelo MAPE vence o Gradient Boosting (9,92% contra 11,16%), mas pelo RMSE vence o Holt-Winters (7,02 contra 7,38), que erra menos nos meses de maior desvio.
+- Como `build_features` exige `lag_12`, os 12 meses de 2022 não viram linhas de treino dos modelos de ML, o que reduz a base efetiva de aprendizado dessas técnicas.
+
+---
+
+## Como executar
+
+### Pré-requisitos
+
+- Python 3.11 ou superior.
+- [uv](https://docs.astral.sh/uv/) para criar o ambiente reprodutível.
+- Docker (opcional), apenas para executar as imagens de pipeline ou JupyterLab.
+- O pipeline completo lê `data/raw/demanda_loja_propria.csv`; use o CSV de exemplo para validar a instalação.
+
+### Ambiente local
 
 ```bash
-# ambiente
+# instalar dependências de produção e o pacote
 uv sync
 
 # pipeline completo (figuras + tabelas + previsão)
-uv run bebibem-forecast
+uv run bebibem-forecast --input data/raw/demanda_loja_propria.csv --outdir reports
+
+# validação rápida com o CSV de exemplo (saída isolada)
+uv run bebibem-forecast --input data/example/demanda_exemplo.csv --outdir reports/example
 
 # variações
 uv run bebibem-forecast --horizon-years 2 --poly-degree 3 --formats png,svg
 uv run bebibem-forecast --steps plots,interp --outdir /tmp/saida
+# com modelos de séries temporais periódicos (Holt-Winters, SARIMA, Fourier)
+uv run bebibem-forecast --timeseries --outdir reports
 
-# notebook
+# notebook (instale também o extra opcional)
+uv sync --extra notebook
 uv run jupyter lab notebooks/01_analise_demanda_bebibem.ipynb
+```
 
-# containers (imagens separadas)
+### Imagens Docker
+
+O pipeline roda como um processo não-root e grava os artefatos no diretório local
+montado em `/app/reports`. A imagem JupyterLab expõe a porta `8888`; defina
+`JUPYTER_TOKEN` para uma sessão conhecida ou deixe-o vazio para gerar um token
+aleatório no início do container.
+
+```bash
+# pipeline (imagem sem dependências de desenvolvimento)
 docker build -f docker/pipeline.Dockerfile -t bebibem-pipeline .
-docker run --rm -v "$PWD/data:/app/data:ro" -v "$PWD/reports:/app/reports" bebibem-pipeline
+docker run --rm \
+  -v "$PWD/data:/app/data:ro" \
+  -v "$PWD/reports:/app/reports" \
+  bebibem-pipeline \
+  --input /app/data/raw/demanda_loja_propria.csv \
+  --outdir /app/reports
 
+# JupyterLab (imagem com o extra notebook)
 docker build -f docker/jupyter.Dockerfile -t bebibem-jupyter .
-docker run --rm -p 8888:8888 -v "$PWD/notebooks:/app/notebooks" -v "$PWD/reports:/app/reports" bebibem-jupyter
+docker run --rm -p 8888:8888 \
+  -e JUPYTER_TOKEN="${JUPYTER_TOKEN:-}" \
+  -v "$PWD/data:/app/data:ro" \
+  -v "$PWD/notebooks:/app/notebooks" \
+  -v "$PWD/reports:/app/reports" \
+  bebibem-jupyter
 ```
 
 ---
@@ -267,7 +449,7 @@ Regras: `unidades` numérico e não negativo; sem duplicidade de (produto, ano, 
 
 ## Artefatos gerados
 
-- `reports/figures/{png,svg,pdf}/` — 28 figuras em três formatos (pontos observados, interpolações com a equação anotada, médias móveis, clusters, backtest, tabela de erros, regressões com equação, matrizes de confusão, previsão, capacidade) + `index.csv`.
+- `reports/figures/{png,svg,pdf}/` — 32 figuras em três formatos, organizadas em subpastas por etapa (`pontos/`, `interpolacao/`, `media_movel/`, `clusters/`, `backtest_comparativo/`, `metricas/`, `regressao_classica/`, `classificacao/`, `previsao/`, `capacidade/`) + `index.csv`. `previsao/` inclui, por linha, a previsão histórico+2025 combinada, um gráfico de barras isolado só com os 12 meses de 2025 e um gráfico de barras com a soma mensal das 3 linhas.
 - `reports/tables/` — `demand_tidy.csv`, `interpolation_fit.csv`, `moving_average.csv`, `clustering_months.csv`, `clustering_series.csv`, `cv_metrics.csv`, `error_metrics.csv`, `regression_fit.csv`, `regime_classification.csv`, `forecast_monthly.csv`, `forecast_annual.csv`, `capacity_vs_demand.csv`.
 - Resposta da questão 5 do case: `reports/tables/forecast_annual.csv` (total anual previsto por linha de produto, com MAPE e MAD de holdout).
 
