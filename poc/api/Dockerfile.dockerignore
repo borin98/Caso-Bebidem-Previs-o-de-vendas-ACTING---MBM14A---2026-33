@@ -1,0 +1,12 @@
+# Contexto = raiz do repositório; só entra o necessário para a API do POC.
+*
+!pyproject.toml
+!uv.lock
+!README.md
+!src/
+!data/raw/
+!poc/api/pyproject.toml
+!poc/api/uv.lock
+!poc/api/src/
+**/__pycache__
+**/*.pyc

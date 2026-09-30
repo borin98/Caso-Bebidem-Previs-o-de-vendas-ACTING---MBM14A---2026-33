@@ -1,0 +1,40 @@
+# POC Planejamento de Demanda: exatamente dois serviços (api e web), publicados só em 127.0.0.1.
+# Subir: docker compose up --build · Parar: docker compose down · Zerar dados: docker compose down -v
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: poc/api/Dockerfile
+    environment:
+      POC_DATA_DIR: /data
+    volumes:
+      - poc-data:/data
+    ports:
+      - "127.0.0.1:8000:8000"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health')
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./web
+      args:
+        INTERNAL_API_URL: http://api:8000
+    environment:
+      INTERNAL_API_URL: http://api:8000
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  poc-data:

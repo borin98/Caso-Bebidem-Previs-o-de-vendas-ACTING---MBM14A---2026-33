@@ -16,7 +16,7 @@
 - **Trade-off**: Sem splines cúbicas prontas nem SARIMA; ajuste polinomial por mínimos quadrados substitui a spline.
 - **Scope**: `src/bebibem/**`, notebooks.
 - **Date**: 2026-09-10
-- **Status**: active
+- **Status**: superseded by AD-020
 
 ### AD-003
 - **Decision**: Toda figura é exportada por `plotting.save_figure` em PNG (300 dpi), SVG e PDF, com metadados de data suprimidos (`metadata={"Date": None}` / `{"CreationDate": None}`).
@@ -106,14 +106,70 @@
 - **Date**: 2026-09-10
 - **Status**: active
 
+### AD-014
+- **Decision**: O motor do POC (`poc/api/src/poc_api/engine.py`) usa janela de avaliação móvel: holdout = últimos 12 meses observados; treino = meses anteriores; mínimo de 36 meses por produto; `random_state=42`; previsão recursiva. CLI e notebook continuam com AD-004 (holdout 2024).
+- **Reason**: O POC anexa meses ("fechar mês"); sem testes, refatorar o pipeline arriscaria mudar as saídas do CLI sem detecção, então a janela fica isolada no motor novo.
+- **Trade-off**: Duas regras de janela no repositório (CLI fixa 2024, POC móvel) e orquestração de backtest repetida no motor; para `data/raw` as duas coincidem (conferido em V-02). Unificação adiada.
+- **Scope**: `poc/api/src/poc_api/engine.py`.
+- **Date**: 2026-09-30
+- **Status**: active
+
+### AD-015
+- **Decision**: No motor do POC a previsão começa no mês seguinte ao último observado e cobre `12 × horizon_years` meses (`horizon_years ∈ {1,2,3}`, padrão 2). O CLI continua com AD-011.
+- **Reason**: Com meses anexados, a data fixa 2025-01 preveria meses já observados.
+- **Trade-off**: CLI e POC com regras de início diferentes até a unificação.
+- **Scope**: `poc/api/src/poc_api/engine.py`.
+- **Date**: 2026-09-30
+- **Status**: active
+
+### AD-016
+- **Decision**: O POC web usa Next.js (App Router) + Bun + Tailwind + shadcn/ui + TanStack Query, com tipos TypeScript (sem Zod), em `poc/web/`, e FastAPI plano em `poc/api/` (projeto uv próprio que depende de `bebibem` por caminho). Sem autenticação; sem testes automatizados; portas publicadas só em 127.0.0.1; treino limitado a 60 s. Empacotamento: **uma imagem Docker para a FastAPI** (`poc/api/Dockerfile`), **uma para o Next.js** (`poc/web/Dockerfile`) e **um único `poc/docker-compose.yml`** com os serviços `api` e `web`; as imagens de AD-005 ficam fora desse compose.
+- **Reason**: Decisões do usuário: stack RSYS, demo local sem login, "usar shadcn", "o mais simples possível", "sem testes (é apenas um POC)", "uma imagem docker para o fast-api, uma para o nextjs e ambas em um docker-compose.yml", "re-treino em até 60 segundos".
+- **Trade-off**: Desvios do `rsys-frontend-stack` (sem Auth.js, sem Zod) e do `rsys-fastapi-guidelines` (sem camadas separadas, sem SQLModel, sem testes); a versão SaaS precisa voltar ao padrão.
+- **Scope**: `poc/**`.
+- **Date**: 2026-09-30
+- **Status**: active
+
+### AD-017
+- **Decision**: O estado do POC vive em arquivos sob `POC_DATA_DIR` (volume `poc-data` no Docker): versões de dados e treinos imutáveis, ponteiro `active.json` e `settings.json`, com escrita atômica; sem banco de dados.
+- **Reason**: Usuário único e demo local; banco está fora de escopo; arquivos são auditáveis e fáceis de zerar (remover o volume).
+- **Trade-off**: Sem consultas nem concorrência multiusuário; migrar para SaaS exigirá repositório com banco.
+- **Scope**: `poc/api/src/poc_api/store.py`.
+- **Date**: 2026-09-30
+- **Status**: active
+
+### AD-018
+- **Decision**: As regras de reposição (estoque de segurança `z × RMSE × √max(L,1)`, necessidade arredondada ao múltiplo, projeção, cobertura, "comprar até", situação ruptura/comprar/adequado/excesso, alerta de capacidade) e as posições de demonstração (aleatórias, semente 42, lead time 1) vivem só em `poc/api/src/poc_api/replenishment.py`; a web apenas exibe.
+- **Reason**: Fonte única das regras do POC; fórmulas portadas do HTML de referência validado no chat do usuário.
+- **Trade-off**: Cada recálculo de parâmetro passa pela API em vez de rodar no navegador.
+- **Scope**: `poc/api/src/poc_api/replenishment.py` e consumidores.
+- **Date**: 2026-09-30
+- **Status**: active
+
+### AD-019
+- **Decision**: Todo o POC vive na pasta `poc/` e consome `bebibem` como biblioteca, só pelas funções públicas. Nenhum arquivo fora de `poc/` e `.specs/` é criado ou alterado pelo POC (pacote, CLI, notebook, testes, `docker/`, `pyproject.toml`, `uv.lock`, `README.md` da raiz). A lógica exclusiva do POC (janela móvel, reposição) fica em `poc/api/`, como exceção explícita e delimitada ao AD-006.
+- **Reason**: Pedido do usuário ("deixe o arquivo do jupyter notebook; crie uma pasta nova para isso"); isola o entregável acadêmico da demo comercial.
+- **Trade-off**: Parte da lógica de cálculo fora de `src/bebibem/` e orquestração de backtest repetida; unificação adiada para a versão SaaS.
+- **Scope**: `poc/**` e sua relação com `src/bebibem/**`.
+- **Date**: 2026-09-30
+- **Status**: active
+
+### AD-020
+- **Decision**: Stack analítica do projeto: `numpy`, `pandas`, `scikit-learn`, `matplotlib` e `statsmodels` (Holt-Winters e SARIMA, DEM-26), com `pandas-stubs` para tipos. `scipy` entra só como dependência transitiva (sem import direto) e `seaborn` continua fora.
+- **Reason**: O AD-002 proibia `statsmodels`, mas o pacote já depende dele desde DEM-26 (`pyproject.toml`: `statsmodels>=0.15.0`). O usuário pediu para desmarcar o AD-002.
+- **Trade-off**: Dependência maior (statsmodels + scipy transitivo) na imagem e no lock.
+- **Scope**: `src/bebibem/**`, notebooks, `poc/api/`.
+- **Date**: 2026-09-30
+- **Status**: active
+
 ## Handoff
 
-- **Feature**: previsao-demanda-bebibem (`.specs/features/previsao-demanda-bebibem/`)
-- **Phase / Task**: Execute complete; review repairs and evidence complete.
-- **Completed**: source fixes, regression tests, notebook isolation, two Docker images, real CSV runs, Jupyter `/lab` smoke test, README and lifecycle metadata.
+- **Feature**: poc-demand-planning-web (`.specs/features/poc-demand-planning-web/`)
+- **Phase / Task**: PRD aprovado (rodada 2: POC em `poc/`, nome neutro, posições aleatórias com lead time 1, P2/P3 na primeira rodada, sem PR, SheetJS seguro, re-treino ≤ 60 s). Execute não iniciado — usuário pediu para não codar ainda.
+- **Completed**: PRD (40 requisitos POC-01…40; 20 tasks em 3 fases; roteiro V-01…V-20); AD-014…AD-020 (AD-002 superseded por AD-020).
 - **In-progress**: none
-- **Next step**: none; feature validated end to end with real CSV.
-- **Blockers**: none
-- **Validation**: `.specs/features/previsao-demanda-bebibem/validation.md` — PASS; 103 tests, 90.23% coverage, notebook gate, Docker builds/runtime, and deterministic real-CSV outputs verified.
-- **Uncommitted files**: `.DS_Store` preexisting and not related.
-- **Branch**: `main`
+- **Next step**: Quando o usuário pedir, iniciar o Execute pela T1 (`poc/api/pyproject.toml`), seguindo `tasks.md` (sem testes; gate lint/build + verificação manual).
+- **Blockers**: none. O usuário cria o card do épico no Plane (projeto P&D) e registra o id em `tasks.md` § Plane. Chat integral já registrado em `reference-chat.md` §5.
+- **Validation**: previsao-demanda-bebibem continua PASS (`.specs/features/previsao-demanda-bebibem/validation.md`).
+- **Uncommitted files**: `.DS_Store` e `reports/` preexistentes, não relacionados.
+- **Branch**: `feat/poc-html-rsys` (cortada de `dev`)

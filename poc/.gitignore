@@ -1,0 +1,4 @@
+api/var/
+api/.venv/
+web/node_modules/
+web/.next/
